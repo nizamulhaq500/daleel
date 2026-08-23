@@ -10,7 +10,7 @@ import jsPDF from 'jspdf';
 import NewsTicker from './NewsTicker';
 
 export default function OfficialView() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -27,26 +27,127 @@ export default function OfficialView() {
 
   const generatePDF = (report: any) => {
     const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text('Daleel Official Intelligence Report', 20, 20);
-    doc.setFontSize(12);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
-    doc.text(`Severity: ${report.severity} (${report.aiScore}/10)`, 20, 40);
-    doc.text(`Platform: ${report.sourcePlatform || 'Unknown'}`, 20, 50);
-    doc.text(`Reported By: ${report.reporterName || 'Anonymous'} (${report.reporterEmail || 'N/A'})`, 20, 60);
-    doc.text(`Categories: ${report.categories?.join(', ') || 'N/A'}`, 20, 70);
     
-    doc.setFontSize(14);
-    doc.text('Content Analysed:', 20, 90);
-    doc.setFontSize(10);
-    const splitContent = doc.splitTextToSize(report.content || 'Image Content Attached', 170);
-    doc.text(splitContent, 20, 100);
+    // --- BRAND HEADER ---
+    doc.setFillColor(15, 23, 42); // bg-slate-900
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.setTextColor(245, 158, 11); // amber-500
+    doc.text('Daleel', 20, 18);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Official Verified Evidence Report', 20, 26);
+    
+    // --- TIMESTAMP ---
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184); // slate-400
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 140, 20);
+    doc.text(`Report ID: ${report.id.substring(0,8).toUpperCase()}`, 140, 26);
+    
+    let y = 50;
 
-    doc.setFontSize(14);
-    doc.text('Context & Notes:', 20, 150);
+    // --- VERIFICATION BADGE ---
+    doc.setFillColor(16, 185, 129); // emerald-500
+    doc.rect(20, y - 6, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    const splitNotes = doc.splitTextToSize(report.contextExplanation || 'N/A', 170);
-    doc.text(splitNotes, 20, 160);
+    const verificationTime = report.escalatedAt ? new Date(report.escalatedAt?.toDate ? report.escalatedAt.toDate() : report.escalatedAt).toLocaleString() : 'N/A';
+    doc.text(`VERIFIED & ESCALATED BY DALEEL NETWORK (${verificationTime})`, 25, y);
+    
+    y += 15;
+
+    // --- PERSONNEL ---
+    doc.setFillColor(241, 245, 249); // slate-100
+    doc.rect(20, y, 170, 35, 'F');
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text('1. Original Reporter', 25, y + 8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${report.reporterName || 'Anonymous'}`, 25, y + 16);
+    doc.text(`Contact: ${report.reporterEmail || 'N/A'} | ${report.reporterPhone || 'N/A'}`, 25, y + 22);
+    doc.text(`DOB: ${report.reporterDob || 'N/A'}`, 25, y + 28);
+
+    doc.line(105, y + 5, 105, y + 30); // separator
+
+    doc.setFont("helvetica", "bold");
+    doc.text('2. Verifying Journalist', 110, y + 8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${report.escalatedByName || 'N/A'}`, 110, y + 16);
+    doc.text(`Contact: ${report.escalatedByEmail || 'N/A'}`, 110, y + 22);
+    doc.text(`Phone: ${report.escalatedByPhone || 'N/A'}`, 110, y + 28);
+    
+    y += 45;
+
+    // --- SEVERITY & PLATFORM ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(245, 158, 11);
+    doc.text(`AI Severity Assessment: ${report.severity} (${report.aiScore}/10)`, 20, y);
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Source Platform: ${report.sourcePlatform || 'Unknown'}`, 20, y + 8);
+    doc.line(20, y + 12, 190, y + 12);
+
+    y += 25;
+
+    // --- CONTENT & EVIDENCE ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Documented Evidence:', 20, y);
+    
+    y += 10;
+
+    if (report.imageBase64) {
+      try {
+        doc.addImage(report.imageBase64, 20, y, 150, 90);
+        y += 100;
+      } catch (e) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.text('[Attached Image - Failed to render in PDF]', 20, y);
+        y += 10;
+      }
+    }
+    
+    if (report.content) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const splitContent = doc.splitTextToSize(report.content, 170);
+      doc.text(splitContent, 20, y);
+      y += (splitContent.length * 5) + 10;
+    }
+
+    if (y > 230) {
+      doc.addPage();
+      // add mini header
+      doc.setFillColor(15, 23, 42); 
+      doc.rect(0, 0, 210, 20, 'F');
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(245, 158, 11);
+      doc.text('Daleel (Cont.)', 20, 13);
+      y = 35;
+    }
+
+    // --- ANALYSIS ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Contextual Analysis & Harm Breakdown:', 20, y);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const splitNotes = doc.splitTextToSize(report.contextExplanation || 'No context generated.', 170);
+    doc.text(splitNotes, 20, y + 10);
     
     doc.save(`Daleel-Official-Report-${report.id.substring(0,6)}.pdf`);
   };

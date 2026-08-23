@@ -9,7 +9,7 @@ import ProfileSettingsModal from './ProfileSettingsModal';
 import FactCheckBot from './FactCheckBot';
 
 export default function Navbar() {
-  const { user, role, signOut, setRole } = useAuth();
+  const { user, role, dbPhoto, signOut, setRole } = useAuth();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -35,12 +35,6 @@ export default function Navbar() {
 
   const CurrentIcon = roleConfig[role].icon;
 
-  const handleRoleSwitch = (newRole: UserRole) => {
-    setRole(newRole);
-    setMenuOpen(false);
-    router.push(`/dashboard/${newRole}`);
-  };
-
   return (
     <>
       <ProfileSettingsModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
@@ -65,23 +59,20 @@ export default function Navbar() {
           {/* Fact-Check Engine Bot in Navbar */}
           <FactCheckBot />
 
-          <div 
-            className="flex items-center gap-4 cursor-pointer hover:bg-slate-800/50 p-2 rounded-xl transition-colors border border-transparent hover:border-slate-700"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-medium text-white">{user.displayName || user.email || 'User'}</span>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center gap-3 hover:bg-slate-800 p-1.5 rounded-full transition-colors relative">
+            <div className="hidden sm:block text-right mr-1">
+              <p className="text-sm font-bold text-white leading-tight">{user.displayName || user.email?.split('@')[0]}</p>
               <span className={`text-xs font-bold ${roleConfig[role].color}`}>{roleConfig[role].label}</span>
             </div>
-            {user.photoURL ? (
-              <img src={user.photoURL} alt="Avatar" className="w-9 h-9 rounded-full border-2 border-slate-700" />
+            {dbPhoto || user.photoURL ? (
+              <img src={dbPhoto || user.photoURL!} alt="Avatar" className="w-9 h-9 rounded-full border-2 border-slate-700 object-cover" />
             ) : (
               <div className="w-9 h-9 rounded-full border-2 border-slate-700 bg-slate-800 flex items-center justify-center text-slate-400 font-bold">
                 {(user.displayName || user.email || 'U')[0].toUpperCase()}
               </div>
             )}
             <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
-          </div>
+          </button>
 
           {menuOpen && (
             <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2">
@@ -100,35 +91,6 @@ export default function Navbar() {
                 >
                   <Settings className="w-4 h-4 text-slate-400" />
                   Profile & Settings
-                </button>
-                <button 
-                  onClick={() => {
-                    alert('Theme switching to be fully implemented. Added to Settings!');
-                  }} 
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors mt-1"
-                >
-                  <div className="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
-                    Appearance
-                  </div>
-                  <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">Dark</span>
-                </button>
-              </div>
-
-              <div className="p-2">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 py-2">Switch Portal</p>
-                
-                <button onClick={() => handleRoleSwitch('reporter')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                  <Users className="w-4 h-4 text-emerald-500" />
-                  Community Reporter
-                </button>
-                <button onClick={() => handleRoleSwitch('journalist')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                  <Shield className="w-4 h-4 text-blue-500" />
-                  Journalist Desk
-                </button>
-                <button onClick={() => handleRoleSwitch('official')} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                  <Building className="w-4 h-4 text-amber-500" />
-                  Agency Inbox
                 </button>
               </div>
 

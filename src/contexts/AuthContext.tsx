@@ -21,6 +21,8 @@ export type UserRole = 'reporter' | 'journalist' | 'official';
 interface AuthContextType {
   user: User | null;
   role: UserRole;
+  dbPhoto: string | null;
+  dbUser: any;
   setRole: (role: UserRole) => void;
   signInWithGoogle: (intendedRole?: UserRole) => Promise<void>;
   signInWithFacebook: (intendedRole?: UserRole) => Promise<void>;
@@ -36,6 +38,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole>('reporter');
+  const [dbPhoto, setDbPhoto] = useState<string | null>(null);
+  const [dbUser, setDbUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -59,7 +63,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
-          setRole(userDoc.data().role as UserRole);
+          const data = userDoc.data();
+          setDbUser(data);
+          setRole(data.role as UserRole);
+          if (data.photoURL) {
+            setDbPhoto(data.photoURL);
+          } else {
+            setDbPhoto(null);
+          }
         } else {
           await setDoc(userDocRef, {
             email: currentUser.email,
@@ -152,7 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, role, setRole, 
+      user, role, setRole, dbPhoto, dbUser, 
       signInWithGoogle, signInWithFacebook, 
       loginWithEmail, registerWithEmail, resetPassword, 
       signOut, loading 

@@ -27,6 +27,12 @@ export default function FactCheckBot() {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  useEffect(() => {
+    const handleOpenBot = () => setIsOpen(true);
+    window.addEventListener('open-fact-check-bot', handleOpenBot);
+    return () => window.removeEventListener('open-fact-check-bot', handleOpenBot);
+  }, []);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

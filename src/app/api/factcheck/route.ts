@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const maxDuration = 60;
 
@@ -45,42 +44,57 @@ export async function POST(request: Request) {
       return NextResponse.json(mockResult);
     }
 
-    // Real API mode
+    // Real API mode (using fetch to bypass SDK and support x-goog-api-key)
     try {
-      const ai = new GoogleGenerativeAI({ apiKey });
-      const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      
-      const prompt = `You are the Daleel Fact-Checking Assistant, an expert AI trained exclusively on verified research databases including The Bridge Initiative, Tell MAMA, and the Institute for Social Policy and Understanding (ISPU). 
-      A user is asking you to fact-check an Islamophobic claim, conspiracy theory, or trope, or analyzing a file they provided.
+      const prompt = `You are the Daleel Fact-Checking Assistant, an expert AI trained to combat disinformation and provide factual context. You have access to verified research from organizations like The Bridge Initiative, Tell MAMA, and the Institute for Social Policy and Understanding (ISPU), as well as your own extensive knowledge base.
       
       User Query: "${query || 'Please analyze this file/image.'}"
       
       Your task:
-      1. Identify the core anti-Muslim trope or conspiracy theory in the query or attached file.
-      2. State clearly that the claim is false or misleading.
-      3. Provide a concise, fact-based refutation using real-world evidence, statistics, or historical context.
-      4. You MUST cite one of the verified research databases (e.g., "According to The Bridge Initiative...", or "(Source: Tell MAMA)").
-      5. Keep the tone professional, objective, and authoritative.
+      1. Analyze the query or attached file. If it contains a claim, trope, or conspiracy theory (especially anti-Muslim disinformation), identify it clearly.
+      2. If the claim is false, misleading, or a known dog-whistle, state that explicitly.
+      3. Provide a concise, fact-based refutation or explanation using real-world evidence, statistics, or historical context.
+      4. PREFERRED: If the topic aligns with their research, cite The Bridge Initiative, Tell MAMA, or the ISPU. If the topic is outside their specific databases, use your own broad knowledge base to provide a highly accurate, helpful response.
+      5. Keep the tone professional, objective, and authoritative. If the user asks a general question unrelated to hate speech, answer it normally and helpfully.
       
       Format the response clearly with paragraphs.`;
 
-      let result;
+      let parts: any[] = [{ text: prompt }];
+
       if (imageBase64) {
         const base64Data = imageBase64.split(',')[1];
         const mimeType = imageBase64.split(';')[0].split(':')[1];
-        result = await model.generateContent([
-          prompt,
-          { inlineData: { data: base64Data, mimeType } }
-        ]);
-      } else {
-        result = await model.generateContent(prompt);
+        parts.push({
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
+          }
+        });
       }
+
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
       
-      const textResponse = result.response.text();
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          contents: [{ parts: parts }]
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Google API responded with status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I was unable to analyze this properly.";
+      
       return NextResponse.json({ refutation: textResponse, claim: query || "Image Analysis" });
       
     } catch (apiError) {
-      // IF THE API FAILS (quota, invalid key, offline), FALLBACK TO MOCK!
       console.warn("Gemini API failed. Falling back to mock database.", apiError);
       const mockResult = await getMockResponse(query, imageBase64);
       return NextResponse.json(mockResult);
