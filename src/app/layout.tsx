@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import FactCheckBot from "@/components/FactCheckBot";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Daleel \u2014 Anti-Muslim Hate Evidence Packager",
-  description: "AI-Powered Islamophobic Content Analyzer & Evidence Packager. Built for The Harvest Hackathon 2026.",
+  title: "Daleel - Trust & Safety Pipeline",
+  description: "Islamophobic Content Analyzer & Evidence Packager. Built for The Harvest Hackathon 2026.",
 };
 
 export default function RootLayout({

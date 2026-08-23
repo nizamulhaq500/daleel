@@ -2,9 +2,11 @@
 
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { Shield, Users, Building, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { BsOctagonHalf } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import ProfileSettingsModal from './ProfileSettingsModal';
+import FactCheckBot from './FactCheckBot';
 
 export default function Navbar() {
   const { user, role, signOut, setRole } = useAuth();
@@ -48,18 +50,21 @@ export default function Navbar() {
           onClick={() => router.push('/')}
           title="Return to Home"
         >
-          <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-            <CurrentIcon className={`w-6 h-6 ${roleConfig[role].color}`} />
+          <div className="bg-emerald-950/50 p-2 rounded-xl border border-emerald-900/50 shadow-inner shadow-emerald-500/10">
+            <BsOctagonHalf className="w-6 h-6 text-emerald-500 rotate-45" />
           </div>
           <div>
-            <h1 className="font-bold text-xl tracking-tight text-white flex items-center gap-2">
+            <h1 className="font-extrabold text-2xl tracking-tight text-white flex items-center gap-2">
               Daleel <span className="text-emerald-500 font-normal">دليل</span>
             </h1>
-            <p className="text-xs text-slate-400 font-medium tracking-wide uppercase">Trust & Safety Pipeline</p>
+            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">Trust & Safety Pipeline</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 relative" ref={menuRef}>
+        <div className="flex items-center gap-4 relative" ref={menuRef}>
+          {/* Fact-Check Engine Bot in Navbar */}
+          <FactCheckBot />
+
           <div 
             className="flex items-center gap-4 cursor-pointer hover:bg-slate-800/50 p-2 rounded-xl transition-colors border border-transparent hover:border-slate-700"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -94,7 +99,19 @@ export default function Navbar() {
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors"
                 >
                   <Settings className="w-4 h-4 text-slate-400" />
-                  Profile Settings
+                  Profile & Settings
+                </button>
+                <button 
+                  onClick={() => {
+                    alert('Theme switching to be fully implemented. Added to Settings!');
+                  }} 
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors mt-1"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                    Appearance
+                  </div>
+                  <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">Dark</span>
                 </button>
               </div>
 

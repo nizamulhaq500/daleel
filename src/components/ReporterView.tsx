@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { ShieldAlert, AlertTriangle, Upload, FileText, CheckCircle, ArrowRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import NewsTicker from './NewsTicker';
@@ -20,6 +20,7 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [toxicityScores, setToxicityScores] = useState<any>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [sourcePlatform, setSourcePlatform] = useState<string>('');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,11 +102,14 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
       const docRef = await addDoc(collection(db, 'reports'), {
         reporterId: user?.uid || 'anonymous',
         reporterEmail: user?.email || 'anonymous',
+        reporterName: user?.displayName || 'Anonymous Reporter',
         content,
         contentType,
         imageBase64,
+        sourcePlatform: sourcePlatform || 'Not Specified',
         severity: analysisResult.severity,
         aiScore: analysisResult.severityScore,
+        categories: analysisResult.categories || [],
         codedTerms: analysisResult.codedTermsFound?.map((c: any) => c.term) || [],
         contextExplanation: analysisResult.contextExplanation,
         status: 'pending', // Will be read by Journalist View
@@ -136,13 +140,33 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
     doc.text(splitContent, 20, 70);
 
     doc.setFontSize(14);
-    doc.text('AI Context & Notes:', 20, 120);
+    doc.text('Context & Notes:', 20, 120);
     doc.setFontSize(10);
     const splitNotes = doc.splitTextToSize(analysisResult.contextExplanation || 'N/A', 170);
     doc.text(splitNotes, 20, 130);
     
     doc.save('Daleel-evidence-package.pdf');
   };
+
+  const [stats, setStats] = useState({ total: 0, escalated: 0 });
+
+  useEffect(() => {
+    if (!user) return;
+    // We fetch real-time reports to count the impact accurately for the current user
+    const unsubscribe = onSnapshot(collection(db, 'reports'), (snapshot) => {
+      let t = 0;
+      let e = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.reporterId === user.uid || data.reporterEmail === user.email) {
+          t++;
+          if (data.status === 'escalated') e++;
+        }
+      });
+      setStats({ total: t, escalated: e });
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   // 1. HOME HUB STATE (Only for Reporters)
   if (!isReporting && !isJournalist) {
@@ -166,19 +190,19 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-          <div className="lg:col-span-8 min-h-[400px]">
+          <div className="lg:col-span-8 h-[520px]">
              <NewsTicker />
           </div>
           <div className="lg:col-span-4 flex flex-col justify-center">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
                <h3 className="text-xl font-bold text-white mb-4">Your Impact</h3>
                <div className="space-y-4">
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <p className="text-3xl font-black text-emerald-500">1</p>
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                    <p className="text-3xl font-black text-emerald-500">{stats.total > 0 ? stats.total : 0}</p>
                     <p className="text-sm text-slate-400 font-medium">Reports Validated</p>
                   </div>
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <p className="text-3xl font-black text-blue-500">1</p>
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                    <p className="text-3xl font-black text-blue-500">{stats.escalated > 0 ? stats.escalated : 0}</p>
                     <p className="text-sm text-slate-400 font-medium">Escalated to Agencies</p>
                   </div>
                </div>
@@ -256,6 +280,26 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
               <p className="text-xs text-slate-600 mt-1">PNG, JPG up to 5MB</p>
               {imageBase64 && <p className="text-emerald-500 mt-2 font-bold text-sm">✓ Image Attached</p>}
             </div>
+            
+            <div className="mt-6">
+              <label className="block text-sm font-bold text-slate-400 mb-2">Where did you find this? (Optional)</label>
+              <select 
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500 transition-all"
+                value={sourcePlatform}
+                onChange={(e) => setSourcePlatform(e.target.value)}
+              >
+                <option value="">Select Platform...</option>
+                <option value="X (Twitter)">X (Twitter)</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Instagram">Instagram</option>
+                <option value="YouTube">YouTube</option>
+                <option value="Telegram">Telegram</option>
+                <option value="Reddit">Reddit</option>
+                <option value="Offline / Real Life">Offline / Real Life</option>
+                <option value="Other">Other Web Link / Drive Link</option>
+              </select>
+            </div>
 
             <div className="mt-8 flex justify-between items-center">
               <p className="text-xs text-slate-500 flex items-center gap-1">
@@ -270,7 +314,7 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
                 {isAnalyzing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    Analyzing AI...
+                    Analyzing Content...
                   </>
                 ) : (
                   'Analyze Content'

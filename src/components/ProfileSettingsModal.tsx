@@ -103,10 +103,39 @@ export default function ProfileSettingsModal({
             <button 
               type="submit" 
               disabled={loading || name === user.displayName}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg py-2.5 font-bold transition-colors mt-4"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg py-2.5 font-bold transition-colors mt-4 mb-6"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving Profile...' : 'Save Profile Changes'}
             </button>
+            
+            <div className="border-t border-slate-800 pt-6 mt-4">
+              <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">App Preferences</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-200">Theme Appearance</p>
+                    <p className="text-xs text-slate-500">Switch between Light and Dark mode</p>
+                  </div>
+                  <select className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500">
+                    <option value="dark">Dark Mode (Default)</option>
+                    <option value="light">Light Mode</option>
+                    <option value="system">System Preference</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-200">Language</p>
+                    <p className="text-xs text-slate-500">Interface language</p>
+                  </div>
+                  <select className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500">
+                    <option value="en">English (US)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       </div>

@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldAlert, CheckCircle, Clock, Search, Filter } from 'lucide-react';
+import { ShieldAlert, CheckCircle, Clock, Search, Filter, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import NewsTicker from './NewsTicker';
 
 export default function JournalistView() {
   const { user } = useAuth();
@@ -34,6 +36,31 @@ export default function JournalistView() {
     }
   };
 
+  const generatePDF = (report: any) => {
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text('Daleel Escalation Report', 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+    doc.text(`Severity: ${report.severity} (${report.aiScore}/10)`, 20, 40);
+    doc.text(`Platform: ${report.sourcePlatform || 'Unknown'}`, 20, 50);
+    doc.text(`Reported By: ${report.reporterName || 'Anonymous'} (${report.reporterEmail || 'N/A'})`, 20, 60);
+    
+    doc.setFontSize(14);
+    doc.text('Content Analysed:', 20, 80);
+    doc.setFontSize(10);
+    const splitContent = doc.splitTextToSize(report.content || 'Image Content Attached', 170);
+    doc.text(splitContent, 20, 90);
+
+    doc.setFontSize(14);
+    doc.text('Context & Notes:', 20, 140);
+    doc.setFontSize(10);
+    const splitNotes = doc.splitTextToSize(report.contextExplanation || 'N/A', 170);
+    doc.text(splitNotes, 20, 150);
+    
+    doc.save(`Daleel-Escalation-${report.id.substring(0,6)}.pdf`);
+  };
+
   return (
     <div className="flex-1 w-full max-w-7xl mx-auto p-4 flex flex-col">
       <div className="mb-8 mt-4">
@@ -43,6 +70,27 @@ export default function JournalistView() {
         <p className="text-slate-400 mt-2 max-w-2xl">
           Welcome to the Journalist Desk. Review community reports, verify evidence, and escalate severe threats to partner agencies.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <div className="lg:col-span-8 h-[520px]">
+          <NewsTicker />
+        </div>
+        <div className="lg:col-span-4 flex flex-col justify-center">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+             <h3 className="text-xl font-bold text-white mb-4">Verification Desk</h3>
+             <div className="space-y-4">
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <p className="text-3xl font-black text-emerald-500">{reports.length}</p>
+                  <p className="text-sm text-slate-400 font-medium">Pending Verifications</p>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <p className="text-3xl font-black text-blue-500">28</p>
+                  <p className="text-sm text-slate-400 font-medium">Reports Forwarded Today</p>
+                </div>
+             </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -75,10 +123,9 @@ export default function JournalistView() {
           reports.map((report) => (
             <div key={report.id} className="grid grid-cols-12 gap-4 p-4 border-b border-slate-800 hover:bg-slate-800/30 transition-colors items-center">
               <div className="col-span-2">
-                <span className="block text-xs font-mono text-slate-500">{report.id.substring(0, 8)}</span>
-                <span className="flex items-center gap-1 text-xs text-slate-400 mt-1">
-                  <Clock className="w-3 h-3" /> Just now
-                </span>
+                <span className="block text-xs font-mono text-slate-500 mb-1">{report.sourcePlatform || 'Unknown'}</span>
+                <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Reported by:</span>
+                <span className="block text-xs font-medium text-slate-400">{report.reporterName || 'Anonymous'}</span>
               </div>
               
               <div className="col-span-1">
@@ -89,9 +136,14 @@ export default function JournalistView() {
               
               <div className="col-span-7 pr-8">
                 <p className="text-sm text-slate-300 line-clamp-1 font-medium mb-1">{report.content || 'Attached Image Evidence'}</p>
-                <div className="flex gap-2 mb-2">
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  {report.categories?.map((cat: string, idx: number) => (
+                    <span key={`cat-${idx}`} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      {cat}
+                    </span>
+                  ))}
                   {report.codedTerms?.map((term: string, idx: number) => (
-                    <span key={idx} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                    <span key={`term-${idx}`} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
                       {term}
                     </span>
                   ))}
@@ -99,12 +151,18 @@ export default function JournalistView() {
                 <p className="text-xs text-slate-500 line-clamp-1">{report.contextExplanation}</p>
               </div>
               
-              <div className="col-span-2 text-right">
+              <div className="col-span-2 flex flex-col gap-2 text-right">
+                <button 
+                  onClick={() => generatePDF(report)}
+                  className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-1 border border-slate-700"
+                >
+                  <FileText className="w-3 h-3" /> Get PDF
+                </button>
                 <button 
                   onClick={() => handleEscalate(report.id)}
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20 w-full"
+                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20 w-full"
                 >
-                  Verify & Escalate
+                  Verify & Forward
                 </button>
               </div>
             </div>
