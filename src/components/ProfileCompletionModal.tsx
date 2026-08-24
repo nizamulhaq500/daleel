@@ -5,11 +5,12 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Shield, Building2, Briefcase, FileSignature, CheckCircle, Video, Lock, UserCircle } from 'lucide-react';
+import { Shield, Building2, Briefcase, FileSignature, CheckCircle, Video, Lock, UserCircle, X } from 'lucide-react';
 
 export default function ProfileCompletionModal() {
-  const { user, dbUser, role } = useAuth();
+  const { user, dbUser, role, refreshDbUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Form states based on role
   const [phone, setPhone] = useState(dbUser?.phone || '');
@@ -48,7 +49,7 @@ export default function ProfileCompletionModal() {
       }
 
       await updateDoc(userRef, updateData);
-      window.location.reload(); 
+      await refreshDbUser(); 
     } catch (err) {
       console.error(err);
     } finally {
@@ -56,13 +57,21 @@ export default function ProfileCompletionModal() {
     }
   };
 
-  if (!needsCompletion) {
+  if (!needsCompletion || isDismissed) {
     return null; // Return nothing if no completion needed or not logged in
   }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
+
+        <button 
+          onClick={() => setIsDismissed(true)} 
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         
         {role === 'official' && <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>}
         {role === 'journalist' && <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>}

@@ -12,7 +12,11 @@ import NewsTicker from './NewsTicker';
 export default function OfficialView() {
   const { user, dbUser } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const isProfileIncomplete = (!dbUser?.organization || !dbUser?.occupation || !dbUser?.credentialId);
 
   useEffect(() => {
     const q = query(collection(db, 'reports'), where('status', '==', 'escalated'));
@@ -159,6 +163,27 @@ export default function OfficialView() {
           {user?.displayName ? `Assalamualaikum, ${user.displayName.split(' ')[0]}` : 'Assalamualaikum'}
         </h2>
         <p className="text-slate-400 mt-2">Verified reports escalated to your Agency Inbox.</p>
+
+      {isProfileIncomplete && (
+        <div className="mt-6 bg-slate-900 border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <h4 className="text-white font-semibold">Action Required: Complete Your Credentials</h4>
+              <p className="text-sm text-slate-400">Please provide your Official ID to take legal takedown actions.</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
+          >
+            Complete Profile <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+      
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -314,7 +339,8 @@ export default function OfficialView() {
       </div>
       <div className="mt-12">
         <ProcessedHistory role="official" />
-      </div>
+            {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
+    </div>
     </div>
   );
 }

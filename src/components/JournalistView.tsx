@@ -11,6 +11,10 @@ import NewsTicker from './NewsTicker';
 export default function JournalistView() {
   const { user, dbUser } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const isProfileIncomplete = (!dbUser?.organization || !dbUser?.journalistType);
 
   useEffect(() => {
     const q = query(collection(db, 'reports'), where('status', '==', 'pending'));
@@ -24,6 +28,10 @@ export default function JournalistView() {
   }, []);
 
   const handleEscalate = async (id: string) => {
+    if (!dbUser?.organization || !dbUser?.journalistType) {
+      setShowProfileWarning(true);
+      return;
+    }
     try {
       const reportRef = doc(db, 'reports', id);
       await updateDoc(reportRef, {
@@ -173,6 +181,27 @@ export default function JournalistView() {
         <p className="text-slate-400 mt-2 max-w-2xl">
           Welcome to the Journalist Desk. Review community reports, verify evidence, and escalate severe threats to partner agencies.
         </p>
+
+        {isProfileIncomplete && (
+          <div className="mt-6 bg-slate-900 border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Action Required: Complete Your Credentials</h4>
+                <p className="text-sm text-slate-400">Please provide your Media Organization to forward verified claims.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
+            >
+              Complete Profile <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -271,7 +300,8 @@ export default function JournalistView() {
             </div>
           ))
         )}
-      </div>
+            {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
+    </div>
     </div>
   );
 }

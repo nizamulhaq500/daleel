@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { 
+  signInWithPopup,
   signInWithRedirect, 
   GoogleAuthProvider, 
   FacebookAuthProvider,
@@ -31,6 +32,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  refreshDbUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,16 +47,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check for redirect results (if they used Google/FB redirect)
-    getRedirectResult(auth).then(async (result) => {
-      if (result?.user) {
-        // If we stored intended role in localStorage before redirect
-        const savedRole = localStorage.getItem('intendedRole') as UserRole || 'reporter';
-        await handleDatabaseUser(result.user, savedRole);
-        router.push(`/dashboard/${savedRole}`);
-      }
-    }).catch(console.error);
-
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       setUser(currentUser);
       
@@ -82,15 +74,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         setRole('reporter');
-        if (pathname?.startsWith('/dashboard')) {
-          router.push('/');
-        }
+        setDbUser(null);
       }
       
       setLoading(false);
     });
     return unsubscribe;
-  }, [pathname, router]);
+  }, []); // Run only once on mount!
+
+  // Separate effect for route protection to avoid re-running auth listener
+  useEffect(() => {
+    if (!loading && !user && pathname?.startsWith('/dashboard')) {
+      router.push('/');
+    }
+  }, [user, loading, pathname, router]);
 
   const handleDatabaseUser = async (currentUser: User, targetRole: UserRole) => {
     const userDocRef = doc(db, 'users', currentUser.uid);
@@ -109,18 +106,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(targetRole);
   };
 
+  
+  const refreshDbUser = async () => {
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setDbUser(data);
+        setRole(data.role as UserRole);
+        if (data.photoURL) setDbPhoto(data.photoURL);
+      }
+    }
+  };
+
   const signInWithGoogle = async (intendedRole?: UserRole) => {
     const targetRole = intendedRole || 'reporter';
     localStorage.setItem('intendedRole', targetRole);
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider); // Single window flow
+    const result = await signInWithPopup(auth, provider);
+    await handleDatabaseUser(result.user, targetRole);
+    router.push(`/dashboard/${targetRole}`);
   };
 
   const signInWithFacebook = async (intendedRole?: UserRole) => {
     const targetRole = intendedRole || 'reporter';
     localStorage.setItem('intendedRole', targetRole);
     const provider = new FacebookAuthProvider();
-    await signInWithRedirect(auth, provider); // Single window flow
+    const result = await signInWithPopup(auth, provider);
+    await handleDatabaseUser(result.user, targetRole);
+    router.push(`/dashboard/${targetRole}`);
   };
 
   const loginWithEmail = async (email: string, password: string, intendedRole?: UserRole) => {
@@ -166,7 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user, role, setRole, dbPhoto, dbUser, 
       signInWithGoogle, signInWithFacebook, 
       loginWithEmail, registerWithEmail, resetPassword, 
-      signOut, loading 
+      signOut, loading, refreshDbUser 
     }}>
       {children}
     </AuthContext.Provider>

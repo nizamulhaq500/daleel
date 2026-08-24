@@ -21,7 +21,7 @@ export default function LandingPage({ isBackground = false }: { isBackground?: b
   return (
     <main className="min-h-screen bg-slate-950 flex flex-col pointer-events-auto relative">
       {/* Header */}
-      {!isBackground && (
+            {!isBackground && (
         user ? (
           <Navbar />
         ) : (

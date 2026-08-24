@@ -22,6 +22,7 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [sourcePlatform, setSourcePlatform] = useState<string>('');
   const [showProfileWarning, setShowProfileWarning] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,6 +34,8 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
       reader.readAsDataURL(file);
     }
   };
+
+  const isProfileIncomplete = (!dbUser?.phone || !dbUser?.dob);
 
   const handleAnalyze = async () => {
     if (!content && !imageBase64) return;
@@ -274,6 +277,27 @@ const handleSubmitEvidence = async () => {
           <p className="text-lg text-slate-400 mt-3 max-w-2xl">
             Thank you for signing in as a Community Reporter. Your vigilance helps protect communities from targeted disinformation and hate speech. What would you like to do today?
           </p>
+          
+          {isProfileIncomplete && (
+            <div className="mt-6 bg-slate-900 border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold">Action Required: Complete Your Profile</h4>
+                  <p className="text-sm text-slate-400">Please provide your Phone and DOB to unlock reporting capabilities.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
+              >
+                Complete Profile <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <button 
             onClick={() => setIsReporting(true)}
             className="mt-6 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 group"
