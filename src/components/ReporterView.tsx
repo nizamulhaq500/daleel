@@ -99,11 +99,6 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   };
 
 const handleSubmitEvidence = async () => {
-    if (!dbUser?.phone || !dbUser?.dob) {
-      setShowProfileWarning(true);
-      return;
-    }
-    
     try {
       const docRef = await addDoc(collection(db, 'reports'), {
         reporterId: user?.uid || 'anonymous',

@@ -41,6 +41,7 @@ export default function RootLayout({
           `
         }} />
         <AuthProvider>
+          <ProfileCompletionModal />
           {children}
         </AuthProvider>
       </body>

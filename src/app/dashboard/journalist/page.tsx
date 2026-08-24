@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import JournalistView from '@/components/JournalistView';
 import ReporterView from '@/components/ReporterView';
-import OnboardingWall from '@/components/OnboardingWall';
 import ProcessedHistory from '@/components/ProcessedHistory';
 import { ListFilter, PlusCircle } from 'lucide-react';
 
@@ -11,7 +10,6 @@ export default function JournalistPage() {
   const [activeTab, setActiveTab] = useState<'triage' | 'report'>('triage');
 
   return (
-    <OnboardingWall role="journalist">
     <div className="flex-1 flex flex-col w-full bg-slate-950 p-8">
       <div className="border-b border-slate-800 bg-slate-900/50 px-8 py-3 flex gap-4 mb-8 rounded-t-3xl">
         <button
@@ -40,6 +38,5 @@ export default function JournalistPage() {
         <ProcessedHistory role="journalist" />
       </div>
     </div>
-    </OnboardingWall>
   );
 }
