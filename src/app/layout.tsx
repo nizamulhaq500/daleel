@@ -40,9 +40,13 @@ export default function RootLayout({
           `
         }} />
         <AuthProvider>
-          <DynamicBackground />
-          <ProfileCompletionModal />
-          {children}
+          <div className="app-shell min-h-screen flex flex-col">
+            <DynamicBackground />
+            <div className="app-content flex-1 flex flex-col">
+              <ProfileCompletionModal />
+              {children}
+            </div>
+          </div>
         </AuthProvider>
       </body>
     </html>

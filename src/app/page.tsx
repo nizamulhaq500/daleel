@@ -19,7 +19,7 @@ function LandingContent({ isBackground = false }: { isBackground?: boolean }) {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md flex flex-col pointer-events-auto relative">
+    <main className="w-full flex flex-col relative">
       {/* Header */}
             {!isBackground && (
         user ? (
@@ -47,7 +47,7 @@ function LandingContent({ isBackground = false }: { isBackground?: boolean }) {
         )
       )}
 
-      <div className="flex-1 max-w-7xl mx-auto w-full px-8 py-12 flex flex-col gap-16">
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 py-6 flex flex-col gap-12">
         
         {/* User Workspace (If Logged In) */}
         {!loading && user && (
