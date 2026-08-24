@@ -40,10 +40,6 @@ export default function JournalistView() {
   }, []);
 
   const handleEscalate = async (id: string) => {
-    if (!dbUser?.organization || !dbUser?.journalistType) {
-      setShowProfileWarning(true);
-      return;
-    }
     try {
       const reportRef = doc(db, 'reports', id);
       await updateDoc(reportRef, {
