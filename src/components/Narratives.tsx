@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { Twitter, Facebook, MessageCircle, Link2, Share2, Check } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Twitter, Facebook, MessageCircle, Link2, Share2, Check, Linkedin, Send, Mail } from 'lucide-react';
 import { narratives, Narrative } from '@/lib/narratives';
 
 export default function Narratives() {
@@ -76,7 +77,7 @@ export default function Narratives() {
       )}
 
       {/* Narrative Modal */}
-      {selectedNarrative && (
+      {selectedNarrative && typeof document !== 'undefined' && createPortal(
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-opacity"
           onClick={() => setSelectedNarrative(null)}
@@ -121,34 +122,59 @@ export default function Narratives() {
               <div className="flex flex-wrap gap-3">
                 <button 
                   onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("False Claim: " + selectedNarrative.claim + "\n\nThe Truth: " + selectedNarrative.reality + "\n\n#Daleel #FactCheck")}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 text-[#1DA1F2] px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  className="flex items-center gap-2 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 text-[#1DA1F2] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 >
-                  <Twitter className="w-4 h-4" /> Share on X
+                  <Twitter className="w-4 h-4" /> X
                 </button>
                 <button 
                   onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=https://daleel.com`, '_blank')}
-                  className="flex items-center gap-2 bg-[#4267B2]/10 hover:bg-[#4267B2]/20 text-[#4267B2] px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  className="flex items-center gap-2 bg-[#4267B2]/10 hover:bg-[#4267B2]/20 text-[#4267B2] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 >
-                  <Facebook className="w-4 h-4" /> Facebook
+                  <Facebook className="w-4 h-4" /> FB
                 </button>
                 <button 
                   onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Fact Check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  className="flex items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4" /> WhatsApp
+                  <MessageCircle className="w-4 h-4" /> WA
+                </button>
+                <button 
+                  onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://daleel.com&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
+                  className="flex items-center gap-2 bg-[#0077b5]/10 hover:bg-[#0077b5]/20 text-[#0077b5] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" /> LinkedIn
+                </button>
+                <button 
+                  onClick={() => window.open(`https://t.me/share/url?url=https://daleel.com&text=${encodeURIComponent("Fact Check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
+                  className="flex items-center gap-2 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 text-[#0088cc] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Send className="w-4 h-4" /> Telegram
+                </button>
+                <button 
+                  onClick={() => window.open(`https://reddit.com/submit?url=https://daleel.com&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
+                  className="flex items-center gap-2 bg-[#ff4500]/10 hover:bg-[#ff4500]/20 text-[#ff4500] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <span className="w-4 h-4 flex items-center justify-center font-bold text-[10px]">re</span> Reddit
+                </button>
+                <button 
+                  onClick={() => window.open(`mailto:?subject=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}&body=${encodeURIComponent("Check out this fact check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
+                  className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Mail className="w-4 h-4" /> Email
                 </button>
                 <button 
                   onClick={() => copyToClipboard(`Fact Check:\n\nClaim: ${selectedNarrative.claim}\n\nReality: ${selectedNarrative.reality}`)}
-                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ml-auto"
+                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ml-auto"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />} 
-                  {copied ? 'Copied!' : 'Copy Text'}
+                  {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
