@@ -124,7 +124,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
               await uploadString(imageRef, imageBase64, 'data_url');
               return await getDownloadURL(imageRef);
             };
-            finalImageUrl = await Promise.race([uploadPromise(), storageTimeout]);
+            finalImageUrl = await Promise.race([uploadPromise(), storageTimeout]) as string | null;
           } catch(e) {
             console.warn("Storage upload failed or timed out. Dropping image to ensure report saves.");
             finalImageUrl = null;
