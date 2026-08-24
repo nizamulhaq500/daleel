@@ -265,7 +265,7 @@ export default function JournalistView() {
                   onClick={() => handleEscalate(report.id)}
                   className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20 w-full"
                 >
-                  Verify & Forward
+                  Escalate & Forward as Verified Claim
                 </button>
               </div>
             </div>

@@ -21,6 +21,7 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   const [toxicityScores, setToxicityScores] = useState<any>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [sourcePlatform, setSourcePlatform] = useState<string>('');
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,7 +98,12 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
     }
   };
 
-  const handleSubmitEvidence = async () => {
+const handleSubmitEvidence = async () => {
+    if (!dbUser?.phone || !dbUser?.dob) {
+      setShowProfileWarning(true);
+      return;
+    }
+    
     try {
       const docRef = await addDoc(collection(db, 'reports'), {
         reporterId: user?.uid || 'anonymous',
