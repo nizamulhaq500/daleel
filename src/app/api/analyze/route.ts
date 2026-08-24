@@ -96,7 +96,7 @@ Output MUST be a valid JSON object matching this structure exactly:
 Analyze the following content carefully and objectively.`;
 
     try {
-      const model = ai.getGenerativeModel({ model: 'gemini-3.6-flash' });
+      const model = ai.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
       let response;
       
       if (imageBase64) {
