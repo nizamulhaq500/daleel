@@ -148,16 +148,16 @@ html.light-mode .bg-slate-900, html.light-mode .bg-slate-800 {
 .photo-wall__sharp,
 .photo-wall__blurred { position: absolute; inset: -4%; background: #061b18; }
 
-.photo-wall__blurred { filter: grayscale(1) blur(8px) opacity(0.5); }
+.photo-wall__blurred { filter: grayscale(.6) blur(6px); }
 .photo-wall__sharp { 
-  filter: grayscale(.35) sepia(.08) hue-rotate(105deg) saturate(.58) brightness(.48) blur(1px); 
+  filter: grayscale(.35) sepia(.08) hue-rotate(105deg) saturate(.58) brightness(.85) blur(1px); 
   transform: scale(1.04); 
 }
 
 .photo-wall__veil { 
   position: absolute; 
   inset: 0; 
-  background: radial-gradient(circle at 50% 42%, rgba(4,28,23,.22), rgba(2,12,18,.90) 78%), linear-gradient(rgba(3,18,22,.44), rgba(2,23,19,.72)); 
+  background: radial-gradient(circle at 50% 42%, rgba(4,28,23,.22), rgba(2,12,18,.70) 78%), linear-gradient(rgba(3,18,22,.44), rgba(2,23,19,.50)); 
 }
 
 .photo-wall__sharp {
