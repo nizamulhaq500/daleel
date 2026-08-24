@@ -113,3 +113,29 @@ html.light-mode .bg-slate-900, html.light-mode .bg-slate-800 {
   background-color: var(--bg-secondary) !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+/* FOCUS BACKGROUND STYLES */
+.editorial-focus-bg {
+  --focus-x: 50vw;
+  --focus-y: 50vh;
+  --focus-radius: 400px;
+}
+
+.editorial-focus-bg__veil {
+  /* Use the CSS vars for the mask */
+  mask-image: radial-gradient(var(--focus-radius) circle at var(--focus-x) var(--focus-y), black 0%, transparent 100%);
+  -webkit-mask-image: radial-gradient(var(--focus-radius) circle at var(--focus-x) var(--focus-y), rgba(0,0,0,0.9) 0%, transparent 80%);
+  
+  /* Fallback for reduced motion/touch devices */
+  @media (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse) {
+    display: none;
+  }
+}
+
+.editorial-focus-bg__glow {
+  background: radial-gradient(var(--focus-radius) circle at var(--focus-x) var(--focus-y), rgba(16, 185, 129, 0.15), transparent 80%);
+  
+  @media (prefers-reduced-motion: reduce), (hover: none) and (pointer: coarse) {
+    display: none;
+  }
+}
