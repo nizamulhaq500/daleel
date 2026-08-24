@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, ShieldAlert, CheckCircle, Brain, Loader2, ImagePlus, Twitter, Facebook, Share2, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Send, ShieldAlert, CheckCircle, Brain, Loader2, ImagePlus, Twitter, Facebook, Share2, Maximize2, Minimize2, Linkedin, MessageCircle, Mail } from 'lucide-react';
 
 export default function FactCheckBot() {
   const [isOpen, setIsOpen] = useState(false);
