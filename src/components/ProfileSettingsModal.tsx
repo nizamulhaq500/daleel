@@ -441,7 +441,33 @@ export default function ProfileSettingsModal({
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
+
+                    <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex items-center justify-between">
+                      <div className="flex gap-4">
+                        <div className="bg-amber-500/10 p-3 rounded-xl">
+                          <Moon className="w-6 h-6 text-amber-500" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Appearance / Theme</h4>
+                          <p className="text-slate-400 text-sm">Choose light or dark mode.</p>
+                        </div>
+                      </div>
+                      <select 
+                        value={theme} 
+                        onChange={(e) => {
+                          setTheme(e.target.value);
+                          localStorage.setItem('theme', e.target.value);
+                          if (e.target.value === 'light') document.documentElement.classList.add('light-mode');
+                          else document.documentElement.classList.remove('light-mode');
+                        }} 
+                        className="bg-[#020617]/70 border border-white/10 text-white rounded-xl px-4 py-3"
+                      >
+                        <option value="dark">Greenish Night (Dark)</option>
+                        <option value="light">Desert (Light)</option>
+                      </select>
+                    </div>
+
+                  <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex items-center justify-between">
                     <div className="flex gap-4">
                       <div className="bg-emerald-500/10 p-3 rounded-xl">
                         <Globe className="w-6 h-6 text-emerald-500" />
@@ -451,7 +477,7 @@ export default function ProfileSettingsModal({
                         <p className="text-slate-400 text-sm">Select your primary language.</p>
                       </div>
                     </div>
-                    <select value={lang} onChange={(e) => handleLanguageChange(e.target.value)} className="bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3">
+                    <select value={lang} onChange={(e) => handleLanguageChange(e.target.value)} className="bg-[#020617]/70 border border-white/10 text-white rounded-xl px-4 py-3">
                       <option value="en">English (US)</option>
                       <option value="ar">العربية (Arabic)</option>
                     </select>
@@ -460,7 +486,91 @@ export default function ProfileSettingsModal({
               </div>
             )}
             
-            {/* Security and Data tabs omitted for brevity, but you can add them back later */}
+            
+            {/* TAB: SECURITY */}
+            {activeTab === 'security' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-1">Security Settings</h3>
+                  <p className="text-slate-400 text-sm">Manage your password and account security.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex gap-4">
+                      <div className="bg-blue-500/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                        <Lock className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium">Change Password</h4>
+                        <p className="text-slate-400 text-sm">Update your password to keep your account secure.</p>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-[#020617]/70 border border-white/10 text-white rounded-xl hover:bg-slate-800 transition-colors">
+                      Update Password
+                    </button>
+                  </div>
+                  
+                  <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex gap-4">
+                      <div className="bg-emerald-500/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                        <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium">Two-Factor Authentication</h4>
+                        <p className="text-slate-400 text-sm">Add an extra layer of security to your account.</p>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/30 text-white rounded-xl transition-colors">
+                      Enable 2FA
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: DATA & PRIVACY */}
+            {activeTab === 'data' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-1">Data & Privacy</h3>
+                  <p className="text-slate-400 text-sm">Control your data and privacy settings.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex gap-4">
+                      <div className="bg-blue-500/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                        <Download className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium">Download Your Data</h4>
+                        <p className="text-slate-400 text-sm">Get a copy of all your reports, evidence, and activity.</p>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-[#020617]/70 border border-white/10 text-white rounded-xl hover:bg-slate-800 transition-colors">
+                      Request Data
+                    </button>
+                  </div>
+                  
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex gap-4">
+                      <div className="bg-red-500/20 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                        <Trash2 className="w-6 h-6 text-red-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium">Delete Account</h4>
+                        <p className="text-red-400/80 text-sm">Permanently delete your account and all associated data.</p>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-colors font-semibold">
+                      Delete Account
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
 
           </div>
         </div>

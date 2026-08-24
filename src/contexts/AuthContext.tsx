@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      try {
+        
       setUser(currentUser);
       
       if (currentUser) {
@@ -77,7 +79,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setDbUser(null);
       }
       
-      setLoading(false);
+      
+      } catch (err) {
+        console.error('Auth state change error:', err);
+      } finally {
+        setLoading(false);
+      }
     });
     return unsubscribe;
   }, []); // Run only once on mount!

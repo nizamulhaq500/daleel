@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldAlert, CheckCircle, Clock, Search, Filter, FileText } from 'lucide-react';
+import { ShieldAlert, CheckCircle, Clock, Search, Filter, FileText, ChevronRight, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import NewsTicker from './NewsTicker';
+import ProfileSettingsModal from './ProfileSettingsModal';
 
 export default function JournalistView() {
   const { user, dbUser } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
+  const [totalEscalated, setTotalEscalated] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showProfileWarning, setShowProfileWarning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -19,12 +22,21 @@ export default function JournalistView() {
   useEffect(() => {
     const q = query(collection(db, 'reports'), where('status', '==', 'pending'));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribePending = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setReports(docs);
     });
+    
+    // Fetch stats for "Reports Forwarded"
+    const statsQ = query(collection(db, 'reports'), where('status', '==', 'escalated'));
+    const unsubscribeStats = onSnapshot(statsQ, (snapshot) => {
+      setTotalEscalated(snapshot.size);
+    });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribePending();
+      unsubscribeStats();
+    };
   }, []);
 
   const handleEscalate = async (id: string) => {
@@ -127,9 +139,9 @@ export default function JournalistView() {
     
     y += 10;
 
-    if (report.imageBase64) {
+    if (report.imageUrl || report.imageBase64) {
       try {
-        doc.addImage(report.imageBase64, 20, y, 150, 90);
+        doc.addImage(report.imageUrl || report.imageBase64, 20, y, 150, 90);
         y += 100;
       } catch (e) {
         doc.setFont("helvetica", "italic");
@@ -183,7 +195,7 @@ export default function JournalistView() {
         </p>
 
         {isProfileIncomplete && (
-          <div className="mt-6 bg-slate-900 border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+          <div className="mt-6 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="w-5 h-5 text-blue-500" />
@@ -195,7 +207,7 @@ export default function JournalistView() {
             </div>
             <button 
               onClick={() => setShowSettings(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
+              className="bg-blue-700/80 hover:bg-blue-600 backdrop-blur-sm border border-blue-500/30 shadow-lg shadow-blue-900/20 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
             >
               Complete Profile <ChevronRight className="w-4 h-4" />
             </button>
@@ -209,16 +221,16 @@ export default function JournalistView() {
           <NewsTicker />
         </div>
         <div className="lg:col-span-4 flex flex-col justify-center">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+          <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-xl">
              <h3 className="text-xl font-bold text-white mb-4">Verification Desk</h3>
              <div className="space-y-4">
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
                   <p className="text-3xl font-black text-emerald-500">{reports.length}</p>
                   <p className="text-sm text-slate-400 font-medium">Pending Verifications</p>
                 </div>
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
-                  <p className="text-3xl font-black text-blue-500">28</p>
-                  <p className="text-sm text-slate-400 font-medium">Reports Forwarded Today</p>
+                <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <p className="text-3xl font-black text-blue-500">{totalEscalated}</p>
+                  <p className="text-sm text-slate-400 font-medium">Total Reports Forwarded</p>
                 </div>
              </div>
           </div>
@@ -227,17 +239,23 @@ export default function JournalistView() {
 
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 flex items-center gap-2">
+          <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-lg px-4 py-2 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-500" />
-            <input type="text" placeholder="Search cases..." className="bg-transparent border-none text-sm text-white focus:outline-none w-48" />
+            <input 
+              type="text" 
+              placeholder="Search cases..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none text-sm text-white focus:outline-none w-48" 
+            />
           </div>
-          <button className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
+          <button className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
             <Filter className="w-4 h-4" /> Filter
           </button>
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+      <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
         <div className="grid grid-cols-12 gap-4 p-4 bg-slate-950/50 border-b border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider">
           <div className="col-span-2">Time / Source</div>
           <div className="col-span-1">Severity</div>
@@ -252,7 +270,11 @@ export default function JournalistView() {
             <p className="text-slate-600 text-sm mt-1">All community reports have been processed.</p>
           </div>
         ) : (
-          reports.map((report) => (
+          reports.filter(r => 
+            (r.content || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+            (r.sourcePlatform || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (r.reporterName || '').toLowerCase().includes(searchQuery.toLowerCase())
+          ).map((report) => (
             <div key={report.id} className="grid grid-cols-12 gap-4 p-4 border-b border-slate-800 hover:bg-slate-800/30 transition-colors items-center">
               <div className="col-span-2">
                 <span className="block text-xs font-mono text-slate-500 mb-1">{report.sourcePlatform || 'Unknown'}</span>
@@ -292,7 +314,7 @@ export default function JournalistView() {
                 </button>
                 <button 
                   onClick={() => handleEscalate(report.id)}
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20 w-full"
+                  className="bg-blue-700/80 hover:bg-blue-600 backdrop-blur-sm border border-blue-500/30 shadow-lg shadow-blue-900/20 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/20 w-full"
                 >
                   Escalate & Forward as Verified Claim
                 </button>

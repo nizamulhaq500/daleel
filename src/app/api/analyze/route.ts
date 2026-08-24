@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { codedLanguageDictionary } from '@/lib/coded-language';
-import { PLATFORM_POLICIES } from '@/lib/platform-policies';
+import { platformPolicies } from '@/lib/platform-policies';
 
 export const maxDuration = 60;
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     // --- REAL API MODE ---
-    const ai = new GoogleGenerativeAI({ apiKey });
+    const ai = new GoogleGenerativeAI(apiKey);
     
     // Prepare the dictionary for context
     const dictionaryContext = Object.values(codedLanguageDictionary)
@@ -96,7 +96,7 @@ Output MUST be a valid JSON object matching this structure exactly:
 Analyze the following content carefully and objectively.`;
 
     try {
-      const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = ai.getGenerativeModel({ model: 'gemini-3.6-flash' });
       let response;
       
       if (imageBase64) {

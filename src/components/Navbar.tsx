@@ -38,7 +38,7 @@ export default function Navbar() {
   return (
     <>
       <ProfileSettingsModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
-      <nav className="w-full bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+      <nav className="w-full bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <div 
           className="flex items-center gap-3 cursor-pointer"
           onClick={() => router.push('/')}
@@ -75,7 +75,7 @@ export default function Navbar() {
           </button>
 
           {menuOpen && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2">
+            <div className="absolute top-full right-0 mt-2 w-64 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2">
               <div className="p-4 border-b border-slate-800 bg-slate-950/50">
                 <p className="text-sm font-bold text-white">{user.displayName || 'User'}</p>
                 <p className="text-xs text-slate-400 truncate">{user.email}</p>

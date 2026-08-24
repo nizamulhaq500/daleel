@@ -14,12 +14,12 @@ import CrimesTimeline from '@/components/CrimesTimeline';
 import Narratives from '@/components/Narratives';
 import Footer from '@/components/Footer';
 
-export default function LandingPage({ isBackground = false }: { isBackground?: boolean }) {
+function LandingContent({ isBackground = false }: { isBackground?: boolean }) {
   const { user, role, loading } = useAuth();
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-slate-950 flex flex-col pointer-events-auto relative">
+    <main className="min-h-screen bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md flex flex-col pointer-events-auto relative">
       {/* Header */}
             {!isBackground && (
         user ? (
@@ -51,7 +51,7 @@ export default function LandingPage({ isBackground = false }: { isBackground?: b
         
         {/* User Workspace (If Logged In) */}
         {!loading && user && (
-          <div className="w-full bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="w-full bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
             {role === 'reporter' && <ReporterPage />}
             {role === 'journalist' && <JournalistPage />}
             {role === 'official' && <OfficialPage />}
@@ -94,7 +94,7 @@ export default function LandingPage({ isBackground = false }: { isBackground?: b
               window.dispatchEvent(new Event('open-fact-check-bot'));
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }} 
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors shrink-0 shadow-lg shadow-emerald-500/20"
+            className="px-6 py-3 bg-emerald-700/80 hover:bg-emerald-600 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-900/20 text-white font-bold rounded-xl transition-colors shrink-0 shadow-lg shadow-emerald-500/20"
           >
             Ask Daleel
           </button>
@@ -105,3 +105,6 @@ export default function LandingPage({ isBackground = false }: { isBackground?: b
     </main>
   );
 }
+
+
+export default function LandingPage() { return <LandingContent />; }

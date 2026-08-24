@@ -322,13 +322,5 @@ export const codedLanguageDictionary: Record<string, CodedTerm> = {
     context: 'A conspiracy theory used to justify boycotting Muslim businesses or Halal products.',
     severity: SeverityLevel.HIGH,
     category: 'conspiracy_terms'
-  },
-  'kebab': {
-    term: 'kebab',
-    meaning: 'Reference to the "Remove Kebab" meme.',
-    context: 'An internet meme glorifying the ethnic cleansing of Bosnian Muslims by Serb forces in the 1990s.',
-    severity: SeverityLevel.CRITICAL,
-    category: 'coded_slurs'
-  },
-
+  }
 };

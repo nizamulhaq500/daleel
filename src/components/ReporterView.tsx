@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { ShieldAlert, AlertTriangle, Upload, FileText, CheckCircle, ArrowRight } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Upload, FileText, CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import NewsTicker from './NewsTicker';
 import ReporterHistory from './ReporterHistory';
@@ -21,6 +22,8 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   const [toxicityScores, setToxicityScores] = useState<any>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [sourcePlatform, setSourcePlatform] = useState<string>('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [flaggedIncorrect, setFlaggedIncorrect] = useState(false);
   const [showProfileWarning, setShowProfileWarning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -103,12 +106,20 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
 
 const handleSubmitEvidence = async () => {
     try {
+      let finalImageUrl = imageBase64;
+      if (imageBase64 && imageBase64.length > 50000) {
+        // Upload to storage if too large for Firestore
+        const imageRef = ref(storage, `evidence/${Date.now()}-${user?.uid || 'anon'}.jpg`);
+        await uploadString(imageRef, imageBase64, 'data_url');
+        finalImageUrl = await getDownloadURL(imageRef);
+      }
+
       const docRef = await addDoc(collection(db, 'reports'), {
-        reporterId: user?.uid || 'anonymous',
-        reporterEmail: user?.email || 'anonymous',
-        reporterName: user?.displayName || 'Anonymous Reporter',
-        reporterPhone: dbUser?.phone || '',
-        reporterDob: dbUser?.dob || '',
+        reporterId: isAnonymous ? 'anonymous' : (user?.uid || 'anonymous'),
+        reporterEmail: isAnonymous ? 'anonymous@daleel.local' : (user?.email || 'anonymous'),
+        reporterName: isAnonymous ? 'Anonymous Reporter' : (user?.displayName || 'Anonymous Reporter'),
+        reporterPhone: isAnonymous ? '' : (dbUser?.phone || ''),
+        reporterDob: isAnonymous ? '' : (dbUser?.dob || ''),
         content,
         contentType,
         imageBase64,
@@ -279,7 +290,7 @@ const handleSubmitEvidence = async () => {
           </p>
           
           {isProfileIncomplete && (
-            <div className="mt-6 bg-slate-900 border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+            <div className="mt-6 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                   <AlertTriangle className="w-5 h-5 text-emerald-500" />
@@ -291,7 +302,7 @@ const handleSubmitEvidence = async () => {
               </div>
               <button 
                 onClick={() => setShowSettings(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
+                className="bg-emerald-700/80 hover:bg-emerald-600 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-900/20 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
               >
                 Complete Profile <ChevronRight className="w-4 h-4" />
               </button>
@@ -300,7 +311,7 @@ const handleSubmitEvidence = async () => {
 
           <button 
             onClick={() => setIsReporting(true)}
-            className="mt-6 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 group"
+            className="mt-6 bg-emerald-700/80 hover:bg-emerald-600 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-900/20 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 group"
           >
             <ShieldAlert className="w-5 h-5" />
             File a New Report
@@ -313,14 +324,14 @@ const handleSubmitEvidence = async () => {
              <NewsTicker />
           </div>
           <div className="lg:col-span-4 flex flex-col justify-center">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-xl">
                <h3 className="text-xl font-bold text-white mb-4">Your Impact</h3>
                <div className="space-y-4">
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
                     <p className="text-3xl font-black text-emerald-500">{stats.total > 0 ? stats.total : 0}</p>
                     <p className="text-sm text-slate-400 font-medium">Reports Validated</p>
                   </div>
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
                     <p className="text-3xl font-black text-blue-500">{stats.escalated > 0 ? stats.escalated : 0}</p>
                     <p className="text-sm text-slate-400 font-medium">Escalated to Agencies</p>
                   </div>
@@ -368,7 +379,7 @@ const handleSubmitEvidence = async () => {
 
       {/* CAPTURE STEP */}
       {currentStep === 'capture' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
           <div className="flex border-b border-slate-800">
             <button 
               className={`flex-1 py-4 font-bold text-sm ${contentType === 'text' ? 'text-emerald-500 border-b-2 border-emerald-500 bg-emerald-500/5' : 'text-slate-400 hover:text-slate-200'}`}
@@ -386,7 +397,7 @@ const handleSubmitEvidence = async () => {
           
           <div className="p-6">
             <textarea
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all min-h-[160px]"
+              className="w-full bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700 rounded-xl p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all min-h-[160px]"
               placeholder={contentType === 'text' ? "Paste the suspected hateful content here..." : "Paste the link to the post/video..."}
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -403,7 +414,7 @@ const handleSubmitEvidence = async () => {
             <div className="mt-6">
               <label className="block text-sm font-bold text-slate-400 mb-2">Where did you find this? (Optional)</label>
               <select 
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500 transition-all"
+                className="w-full bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-emerald-500 transition-all"
                 value={sourcePlatform}
                 onChange={(e) => setSourcePlatform(e.target.value)}
               >
@@ -428,7 +439,7 @@ const handleSubmitEvidence = async () => {
               <button 
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || (!content && !imageBase64)}
-                className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
+                className="bg-emerald-700/80 hover:bg-emerald-600 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-900/20 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
               >
                 {isAnalyzing ? (
                   <>
@@ -449,7 +460,7 @@ const handleSubmitEvidence = async () => {
         <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-500">
           
           {/* Main Verdict Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row gap-6">
+          <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row gap-6">
             <div className={`w-32 shrink-0 flex flex-col items-center justify-center rounded-xl p-4 ${analysisResult.severityScore > 7 ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'} border`}>
               <span className="text-4xl font-black">{analysisResult.severityScore}/10</span>
               <span className="text-xs font-bold uppercase tracking-wider mt-1">{analysisResult.severity} Severity</span>
@@ -470,7 +481,7 @@ const handleSubmitEvidence = async () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
                 Coded Language Detected
@@ -478,7 +489,7 @@ const handleSubmitEvidence = async () => {
               {analysisResult.codedTermsFound?.length > 0 ? (
                 <div className="space-y-3">
                   {analysisResult.codedTermsFound.map((item: any, idx: number) => (
-                    <div key={idx} className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <div key={idx} className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-3 rounded-lg border border-slate-800">
                       <span className="font-bold text-amber-400 block mb-1">"{item.term}"</span>
                       <span className="text-sm text-slate-400">{item.meaning}</span>
                     </div>
@@ -489,14 +500,14 @@ const handleSubmitEvidence = async () => {
               )}
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-emerald-500" />
                 Counter-Narrative Suggestion
               </h3>
               <ul className="space-y-3">
                 {analysisResult.counterNarratives?.map((item: string, idx: number) => (
-                  <li key={idx} className="text-sm text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <li key={idx} className="text-sm text-slate-300 bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-3 rounded-lg border border-slate-800">
                     {item}
                   </li>
                 ))}
@@ -507,7 +518,7 @@ const handleSubmitEvidence = async () => {
           <div className="flex justify-end pt-4">
              <button 
                 onClick={handleSubmitEvidence}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-blue-500/20 transition-all"
+                className="bg-blue-700/80 hover:bg-blue-600 backdrop-blur-sm border border-blue-500/30 shadow-lg shadow-blue-900/20 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-blue-500/20 transition-all"
               >
                 Escalate to Watchdog Network
               </button>
@@ -517,7 +528,7 @@ const handleSubmitEvidence = async () => {
 
       {/* REPORT STEP */}
       {currentStep === 'report' && (
-        <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-10 shadow-xl text-center animate-in zoom-in-95 duration-500">
+        <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-emerald-500/30 rounded-2xl p-10 shadow-xl text-center animate-in zoom-in-95 duration-500">
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-emerald-500" />
           </div>
@@ -541,7 +552,7 @@ const handleSubmitEvidence = async () => {
                 setCurrentStep('capture');
                 if (!isJournalist) setIsReporting(false);
               }}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-emerald-500/20 transition-all"
+              className="bg-emerald-700/80 hover:bg-emerald-600 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-emerald-500/20 transition-all"
             >
               {isJournalist ? 'Submit Another Report' : 'Return to Hub'}
             </button>

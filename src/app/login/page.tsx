@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('reporter');
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && role) {
       router.push(`/dashboard/${role}`);
     }
   }, [user, role, loading, router]);
@@ -23,7 +23,14 @@ export default function LoginPage() {
     setAuthModalOpen(true);
   };
 
-  if (loading || user) return <div className="min-h-screen bg-slate-950"></div>;
+  if (loading || (user && !role)) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-400 font-mono text-sm">Authenticating...</p>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 flex flex-col p-6 sm:p-12 relative overflow-hidden">

@@ -1,5 +1,7 @@
 import React from 'react';
-import { Mail, ArrowRight, ShieldCheck, Twitter, Facebook, Instagram, Github } from 'lucide-react';
+import Link from 'next/link';
+import { Mail, ArrowRight, Twitter, Facebook, Instagram, Github } from 'lucide-react';
+import { BsOctagonHalf } from 'react-icons/bs';
 
 export default function Footer() {
   return (
@@ -9,10 +11,14 @@ export default function Footer() {
           {/* Brand & Mission */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="bg-emerald-500 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <ShieldCheck className="w-6 h-6 text-white" />
+              <div className="bg-emerald-950/50 p-2 rounded-xl border border-emerald-900/50 shadow-inner shadow-emerald-500/10">
+                <BsOctagonHalf className="w-6 h-6 text-emerald-500 rotate-45" />
               </div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Daleel<span className="text-emerald-500">.</span></h2>
+              <div>
+                <h2 className="font-extrabold text-2xl tracking-tight text-white flex items-center gap-2">
+                  Daleel <span className="text-emerald-500 font-normal">دليل</span>
+                </h2>
+              </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
               AI-Powered Anti-Muslim Hate Evidence Packager. Empowering communities, journalists, and officials to combat Islamophobia through verifiable data and factual counter-narratives.
@@ -40,7 +46,7 @@ export default function Footer() {
           <div>
             <h3 className="text-slate-100 font-bold mb-4">Legal & Policy</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-slate-400 hover:text-emerald-500 text-sm transition-colors">Privacy Policy</a></li>
+              <li><Link href="/privacy" className="text-slate-400 hover:text-emerald-500 text-sm transition-colors">Privacy Policy</Link></li>
               <li><a href="#" className="text-slate-400 hover:text-emerald-500 text-sm transition-colors">Terms of Service</a></li>
               <li><a href="#" className="text-slate-400 hover:text-emerald-500 text-sm transition-colors">Data Security</a></li>
               <li><a href="#" className="text-slate-400 hover:text-emerald-500 text-sm transition-colors">Platform Guidelines</a></li>

@@ -106,6 +106,7 @@ const crimes: Crime[] = [
 
 export default function CrimesTimeline() {
   const [selectedCrime, setSelectedCrime] = useState<Crime | null>(null);
+  const [acceptedWarning, setAcceptedWarning] = useState(false);
 
   return (
     <div className="w-full mt-16 pb-16">
@@ -121,6 +122,22 @@ export default function CrimesTimeline() {
         </p>
       </div>
 
+      {!acceptedWarning ? (
+        <div className="bg-red-950/30 border border-red-500/30 rounded-2xl p-8 max-w-3xl mx-auto text-center backdrop-blur-sm">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-2xl font-bold text-white mb-2">Content Warning</h3>
+          <p className="text-slate-300 mb-6">
+            The following section documents real-world hate crimes, mass shootings, and violence against Muslims. 
+            These descriptions and images may be distressing or re-traumatizing.
+          </p>
+          <button 
+            onClick={() => setAcceptedWarning(true)}
+            className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-lg shadow-red-900/20"
+          >
+            I Understand, Show Content
+          </button>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {crimes.map((crime) => (
           <div 
@@ -146,6 +163,7 @@ export default function CrimesTimeline() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Modal */}
       {selectedCrime && (

@@ -97,7 +97,7 @@ export default function FactCheckBot() {
       {/* Navbar Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 rounded-lg transition-all ${isOpen ? 'border-emerald-500 bg-emerald-500/10' : ''}`}
+        className={`flex items-center gap-2 px-4 py-2 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 rounded-lg transition-all ${isOpen ? 'border-emerald-500 bg-emerald-500/10' : ''}`}
       >
         <Brain className={`w-5 h-5 ${isOpen ? 'text-emerald-500' : 'text-slate-400'}`} />
         <span className="text-sm font-bold text-white hidden sm:block">Fact-Check</span>
@@ -105,10 +105,10 @@ export default function FactCheckBot() {
 
       {/* Chat Window */}
       <div 
-        className={`${windowClasses} bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
+        className={`${windowClasses} bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 rounded-t-2xl shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md rounded-t-2xl shrink-0">
           <div className="flex items-center gap-2">
             <div className="bg-emerald-500/20 p-2 rounded-lg border border-emerald-500/30">
               <Brain className="w-5 h-5 text-emerald-500" />
@@ -136,7 +136,7 @@ export default function FactCheckBot() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'bot' && (
@@ -214,7 +214,7 @@ export default function FactCheckBot() {
         </div>
 
         {/* Input Area */}
-        <div className="p-3 bg-slate-950 border-t border-slate-800 rounded-b-2xl flex flex-col gap-2">
+        <div className="p-3 bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md border-t border-slate-800 rounded-b-2xl flex flex-col gap-2">
           {isUploading && (
             <div className="absolute top-0 left-0 w-full h-1 bg-slate-800 rounded-t-2xl overflow-hidden">
               <div className="h-full bg-emerald-500 w-1/2 animate-[bounce_1s_infinite_ease-in-out_alternate]"></div>
@@ -231,7 +231,7 @@ export default function FactCheckBot() {
                    <span className="text-[8px] font-bold mt-1 uppercase">Doc</span>
                  </div>
                )}
-               <button onClick={() => setImageBase64(null)} className="absolute top-1 right-1 bg-slate-900 rounded-full p-0.5"><X className="w-3 h-3 text-white" /></button>
+               <button onClick={() => setImageBase64(null)} className="absolute top-1 right-1 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md rounded-full p-0.5"><X className="w-3 h-3 text-white" /></button>
              </div>
           )}
           <form onSubmit={handleSubmit} className="relative flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function FactCheckBot() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Ask about a claim or trope..."
-                className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700 text-slate-200 text-sm rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                 disabled={isUploading}
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2">

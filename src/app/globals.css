@@ -1,24 +1,115 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  /* Default: Greenish Night (Dark Mode) */
+  --bg-primary: #051a14;
+  --bg-secondary: #0a2e22;
+  --bg-tertiary: #0f4231;
+  --bg-glass: rgba(5, 26, 20, 0.7);
+  --bg-glass-strong: rgba(10, 46, 34, 0.85);
+  
+  --text-primary: #f0fdf4;
+  --text-secondary: #bbf7d0;
+  --text-muted: #86efac;
+  
+  --border-subtle: rgba(187, 247, 208, 0.15);
+  --border-strong: rgba(187, 247, 208, 0.3);
+  
+  --accent: #10b981;
+  --accent-hover: #059669;
+}
+
+html.light-mode {
+  /* Desert Light (Light Mode) */
+  --bg-primary: #fdfbf7;
+  --bg-secondary: #f4eee1;
+  --bg-tertiary: #e8decc;
+  --bg-glass: rgba(253, 251, 247, 0.85);
+  --bg-glass-strong: rgba(244, 238, 225, 0.95);
+  
+  --text-primary: #2c241b;
+  --text-secondary: #5a4a38;
+  --text-muted: #8a7356;
+  
+  --border-subtle: rgba(90, 74, 56, 0.2);
+  --border-strong: rgba(90, 74, 56, 0.4);
+  
+  --accent: #d97706;
+  --accent-hover: #b45309;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, sans-serif;
+  background-color: transparent; /* Background handles the real background */
+  color: var(--text-primary);
+  font-family: var(--font-body), sans-serif;
 }
 
-/* Light Mode Utility */
-html.light-mode {
-  filter: invert(1) hue-rotate(180deg);
-  background-color: white;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), serif;
+  color: var(--text-primary);
 }
 
-html.light-mode img,
-html.light-mode video,
-html.light-mode .no-invert {
-  filter: invert(1) hue-rotate(180deg);
+/* Base UI adjustments to use CSS variables for theme switching */
+.bg-slate-900, 
+.bg-slate-950, 
+.bg-\[\#020617\], 
+.bg-slate-900\/50, 
+.bg-slate-950\/50,
+.bg-\[\#020617\]\/40,
+.bg-\[\#020617\]\/50 {
+  background-color: var(--bg-glass) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.text-white, .text-slate-50, .text-slate-100, .text-slate-200, .text-slate-200\/90 {
+  color: var(--text-primary) !important;
+}
+
+.text-slate-300, .text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+.text-slate-500, .text-slate-600 {
+  color: var(--text-muted) !important;
+}
+
+.border-slate-800, .border-slate-700, .border-slate-800\/50 {
+  border-color: var(--border-subtle) !important;
+}
+
+/* Ensure inputs and textareas look correct in light mode */
+html.light-mode input,
+html.light-mode textarea,
+html.light-mode select {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+html.light-mode input::placeholder,
+html.light-mode textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Fix specific blue/emerald AI theme buttons to match new desert/greenish theme */
+html.light-mode .bg-blue-600, html.light-mode .bg-blue-700\/80,
+html.light-mode .bg-emerald-600, html.light-mode .bg-emerald-700\/80 {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+}
+
+html.light-mode .text-emerald-500,
+html.light-mode .text-emerald-400,
+html.light-mode .text-blue-400,
+html.light-mode .text-blue-500 {
+  color: var(--accent) !important;
+}
+
+/* Cards & Modals */
+.bg-slate-900, .bg-slate-800 {
+  background-color: var(--bg-secondary) !important;
+}
+html.light-mode .bg-slate-900, html.light-mode .bg-slate-800 {
+  background-color: var(--bg-secondary) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

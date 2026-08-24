@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProfileCompletionModal from "@/components/ProfileCompletionModal";
 import FactCheckBot from "@/components/FactCheckBot";
-
-const inter = Inter({ subsets: ["latin"] });
+import DynamicBackground from "@/components/DynamicBackground";
 
 export const metadata: Metadata = {
   title: "Daleel - Trust & Safety Pipeline",
@@ -18,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-slate-950 text-slate-50 min-h-screen flex flex-col antialiased selection:bg-emerald-500/30`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans bg-transparent text-slate-50 min-h-screen flex flex-col antialiased selection:bg-emerald-500/30 relative" suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
@@ -42,6 +40,7 @@ export default function RootLayout({
           `
         }} />
         <AuthProvider>
+          <DynamicBackground />
           <ProfileCompletionModal />
           {children}
         </AuthProvider>
