@@ -53,27 +53,31 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter Subscription */}
+          {/* Help Desk */}
           <div>
-            <h3 className="text-slate-100 font-bold mb-4">Stay Informed</h3>
-            <p className="text-slate-400 text-sm mb-4">Subscribe to our newsletter for weekly intelligence reports on emerging hate narratives.</p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); alert("Subscribed to Daleel Newsletter!"); }}>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  required
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                />
+            <h3 className="text-slate-100 font-bold mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Technical Support
+            </h3>
+            <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-xl">
+              <p className="text-slate-400 text-sm mb-4">
+                Facing technical errors? Please contact our Help Desk with a screenshot and description of the issue.
+              </p>
+              <div className="space-y-3">
+                <a href="mailto:nizamulhaq500@gmail.com" className="flex items-center gap-3 text-slate-300 hover:text-emerald-500 transition-colors group">
+                  <div className="bg-slate-800 p-2 rounded-lg group-hover:bg-emerald-500/10">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm font-medium">nizamulhaq500@gmail.com</span>
+                </a>
+                <a href="tel:+919596784161" className="flex items-center gap-3 text-slate-300 hover:text-emerald-500 transition-colors group">
+                  <div className="bg-slate-800 p-2 rounded-lg group-hover:bg-emerald-500/10">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  </div>
+                  <span className="text-sm font-medium">+91 9596784161</span>
+                </a>
               </div>
-              <button 
-                type="submit" 
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                Subscribe <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+            </div>
           </div>
         </div>
 

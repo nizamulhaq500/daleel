@@ -33,7 +33,7 @@ export default function ReporterHistory() {
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl mt-8">
-      <h3 className="text-2xl font-bold text-white mb-6">My Submission History</h3>
+      <h3 className="text-2xl font-bold text-white mb-6">Recent Submissions by Reporters</h3>
       
       <div className="space-y-4">
         {reports.length === 0 ? (
