@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+html, body { background-color: #020617; }
+
+
 :root {
   /* Default: Greenish Night (Dark Mode) */
   --bg-primary: #051a14;
@@ -165,7 +168,7 @@ html.light-mode .bg-slate-900, html.light-mode .bg-slate-800 {
   transition: clip-path .18s ease-out, transform .24s ease-out;
 }
 .photo-wall.is-active .photo-wall__sharp {
-  clip-path: circle(17rem at var(--mx, 50%) var(--my, 50%));
+  clip-path: circle(8rem at var(--mx, 50%) var(--my, 50%));
   transform: scale(1.09);
 }
 @media (max-width: 800px), (prefers-reduced-motion: reduce) {

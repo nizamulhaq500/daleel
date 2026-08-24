@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   if (loading || (user && !role)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center">
         <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-slate-400 font-mono text-sm">Authenticating...</p>
       </div>
@@ -33,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 flex flex-col p-6 sm:p-12 relative overflow-hidden">
+    <main className="min-h-screen bg-transparent flex flex-col p-6 sm:p-12 relative overflow-hidden">
       
       {/* Background blobs for visual appeal */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none -translate-y-1/2"></div>
