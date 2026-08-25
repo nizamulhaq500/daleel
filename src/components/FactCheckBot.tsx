@@ -1,9 +1,11 @@
 'use client';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, ShieldAlert, CheckCircle, Brain, Loader2, ImagePlus, Twitter, Facebook, Share2, Maximize2, Minimize2, Linkedin, MessageCircle, Mail } from 'lucide-react';
 
 export default function FactCheckBot() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [query, setQuery] = useState('');
@@ -64,7 +66,10 @@ export default function FactCheckBot() {
     try {
       const response = await fetch('/api/factcheck', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await user?.getIdToken()}`
+        },
         body: JSON.stringify({ query: userMsg, imageBase64: currentImage }),
       });
 
@@ -72,7 +77,7 @@ export default function FactCheckBot() {
       
       setMessages(prev => [...prev, { 
         role: 'bot', 
-        content: data.refutation || "I couldn't verify that claim in my current database.",
+        content: data.refutation || (data.error ? `Backend Error: ${data.error}` : "I couldn't verify that claim in my current database."),
         claim: data.claim || userMsg || "Analyzed Content",
         status: 'done'
       }]);

@@ -110,7 +110,7 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     console.error('FactCheck Route Error:', error);
     return NextResponse.json(
-      { error: 'Failed to process fact-check query' },
+      { error: 'Failed to process fact-check query: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
