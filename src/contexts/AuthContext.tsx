@@ -11,6 +11,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut as firebaseSignOut, 
+  updateProfile,
   User,
   getRedirectResult
 } from 'firebase/auth';
@@ -19,11 +20,25 @@ import { useRouter, usePathname } from 'next/navigation';
 
 export type UserRole = 'reporter' | 'journalist' | 'official';
 
+export interface DbUser {
+  email: string;
+  name: string;
+  role: UserRole;
+  createdAt: any;
+  photoURL?: string;
+  organization?: string;
+  journalistType?: string;
+  department?: string;
+  officialId?: string;
+  phone?: string;
+  [key: string]: any; // Allow other dynamic fields to exist without TS errors
+}
+
 interface AuthContextType {
   user: User | null;
   role: UserRole;
   dbPhoto: string | null;
-  dbUser: any;
+  dbUser: DbUser | null;
   setRole: (role: UserRole) => void;
   signInWithGoogle: (intendedRole?: UserRole) => Promise<void>;
   signInWithFacebook: (intendedRole?: UserRole) => Promise<void>;
@@ -41,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole>('reporter');
   const [dbPhoto, setDbPhoto] = useState<string | null>(null);
-  const [dbUser, setDbUser] = useState<any>(null);
+  const [dbUser, setDbUser] = useState<DbUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -49,37 +64,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       try {
-        
-      setUser(currentUser);
-      
-      if (currentUser) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setDbUser(data);
-          setRole(data.role as UserRole);
-          if (data.photoURL) {
-            setDbPhoto(data.photoURL);
+        setUser(currentUser);
+        if (currentUser) {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const data = userDoc.data() as DbUser;
+            setDbUser(data);
+            setRole(data.role as UserRole);
+            if (data.photoURL) {
+              setDbPhoto(data.photoURL);
+            } else {
+              setDbPhoto(null);
+            }
           } else {
-            setDbPhoto(null);
+            const newUserData: DbUser = {
+              email: currentUser.email || '',
+              name: currentUser.displayName || currentUser.email || '',
+              role: 'reporter',
+              createdAt: new Date()
+            };
+            await setDoc(userDocRef, newUserData);
+            setDbUser(newUserData);
+            setRole('reporter');
           }
         } else {
-          await setDoc(userDocRef, {
-            email: currentUser.email,
-            name: currentUser.displayName || currentUser.email,
-            role: 'reporter',
-            createdAt: new Date()
-          });
           setRole('reporter');
+          setDbUser(null);
         }
-      } else {
-        setRole('reporter');
-        setDbUser(null);
-      }
-      
-      
       } catch (err) {
         console.error('Auth state change error:', err);
       } finally {
@@ -96,12 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, loading, pathname, router]);
 
-  const handleDatabaseUser = async (currentUser: User, targetRole: UserRole) => {
+  const handleDatabaseUser = async (currentUser: User, targetRole: UserRole): Promise<UserRole> => {
     const userDocRef = doc(db, 'users', currentUser.uid);
     const userDoc = await getDoc(userDocRef);
     
+    let finalRole = targetRole;
     if (userDoc.exists()) {
-      await updateDoc(userDocRef, { role: targetRole });
+      finalRole = userDoc.data().role as UserRole;
     } else {
       await setDoc(userDocRef, {
         email: currentUser.email,
@@ -110,16 +124,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         createdAt: new Date()
       });
     }
-    setRole(targetRole);
+    setRole(finalRole);
+    return finalRole;
   };
 
-  
   const refreshDbUser = async () => {
     if (user) {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
-        const data = userDoc.data();
+        const data = userDoc.data() as DbUser;
         setDbUser(data);
         setRole(data.role as UserRole);
         if (data.photoURL) setDbPhoto(data.photoURL);
@@ -132,8 +146,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('intendedRole', targetRole);
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
-    await handleDatabaseUser(result.user, targetRole);
-    router.push(`/dashboard/${targetRole}`);
+    const actualRole = await handleDatabaseUser(result.user, targetRole);
+    if (actualRole !== targetRole) {
+      await firebaseSignOut(auth);
+      throw new Error(`This account belongs to a ${actualRole}. Please use the ${actualRole} login portal.`);
+    }
+    router.push(`/dashboard/${actualRole}`);
   };
 
   const signInWithFacebook = async (intendedRole?: UserRole) => {
@@ -141,25 +159,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('intendedRole', targetRole);
     const provider = new FacebookAuthProvider();
     const result = await signInWithPopup(auth, provider);
-    await handleDatabaseUser(result.user, targetRole);
-    router.push(`/dashboard/${targetRole}`);
+    const actualRole = await handleDatabaseUser(result.user, targetRole);
+    if (actualRole !== targetRole) {
+      await firebaseSignOut(auth);
+      throw new Error(`This account belongs to a ${actualRole}. Please use the ${actualRole} login portal.`);
+    }
+    router.push(`/dashboard/${actualRole}`);
   };
 
   const loginWithEmail = async (email: string, password: string, intendedRole?: UserRole) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const targetRole = intendedRole || 'reporter';
-    await handleDatabaseUser(result.user, targetRole);
-    router.push(`/dashboard/${targetRole}`);
+    const actualRole = await handleDatabaseUser(result.user, targetRole);
+    if (actualRole !== targetRole) {
+      await firebaseSignOut(auth);
+      throw new Error(`This account belongs to a ${actualRole}. Please use the ${actualRole} login portal.`);
+    }
+    router.push(`/dashboard/${actualRole}`);
   };
 
   const registerWithEmail = async (email: string, password: string, name: string, intendedRole?: UserRole) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const targetRole = intendedRole || 'reporter';
     
-    // Update Firebase Auth Profile
-    import('firebase/auth').then(({ updateProfile }) => {
-      updateProfile(result.user, { displayName: name }).catch(console.error);
-    });
+    // Update Firebase Auth Profile statically
+    updateProfile(result.user, { displayName: name }).catch(console.error);
 
     // Update Firestore Document directly to ensure name is saved immediately
     const userDocRef = doc(db, 'users', result.user.uid);

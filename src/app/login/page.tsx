@@ -13,10 +13,11 @@ export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('reporter');
 
   useEffect(() => {
-    if (!loading && user && role) {
+    // Only auto-redirect if they didn't just open the login modal to prevent interrupting error messages
+    if (!loading && user && role && !authModalOpen) {
       router.push(`/dashboard/${role}`);
     }
-  }, [user, role, loading, router]);
+  }, [user, role, loading, router, authModalOpen]);
 
   const handleLogin = (intendedRole: UserRole) => {
     setSelectedRole(intendedRole);

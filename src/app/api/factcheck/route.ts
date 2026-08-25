@@ -29,6 +29,13 @@ async function getMockResponse(query: string, imageBase64?: string) {
 }
 
 export async function POST(request: Request) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
+  }
+  // Note: For full production security, verify this token with firebase-admin.
+  const token = authHeader.split('Bearer ')[1];
+
   try {
     const { query, imageBase64 } = await request.json();
 
@@ -72,7 +79,7 @@ export async function POST(request: Request) {
         });
       }
 
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
       
       const res = await fetch(url, {
         method: "POST",
@@ -100,7 +107,7 @@ export async function POST(request: Request) {
       return NextResponse.json(mockResult);
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('FactCheck Route Error:', error);
     return NextResponse.json(
       { error: 'Failed to process fact-check query' },

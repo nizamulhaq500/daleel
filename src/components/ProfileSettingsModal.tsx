@@ -134,8 +134,8 @@ export default function ProfileSettingsModal({
   const years = Array.from({length: 100}, (_, i) => String(currentYear - i));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative ">
         
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/50">
@@ -206,7 +206,7 @@ export default function ProfileSettingsModal({
             
             {/* TAB: PROFILE */}
             {activeTab === 'profile' && (
-              <form onSubmit={handleSave} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 max-w-3xl">
+              <form onSubmit={handleSave} className="space-y-8  max-w-3xl">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1">Public Profile</h3>
                   <p className="text-slate-400 text-sm">Manage your personal information and contact details.</p>
@@ -316,7 +316,7 @@ export default function ProfileSettingsModal({
 
             {/* TAB: CREDENTIALS */}
             {activeTab === 'credentials' && (role === 'journalist' || role === 'official') && (
-              <form onSubmit={handleSave} className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl">
+              <form onSubmit={handleSave} className="space-y-8  max-w-2xl">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1">Official Credentials</h3>
                   <p className="text-slate-400 text-sm">
@@ -434,7 +434,7 @@ export default function ProfileSettingsModal({
 
             {/* TAB: PREFERENCES */}
             {activeTab === 'preferences' && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-8 ">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1">Preferences</h3>
                   <p className="text-slate-400 text-sm">Customize your Daleel experience.</p>
@@ -489,7 +489,7 @@ export default function ProfileSettingsModal({
             
             {/* TAB: SECURITY */}
             {activeTab === 'security' && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-8 ">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1">Security Settings</h3>
                   <p className="text-slate-400 text-sm">Manage your password and account security.</p>
@@ -531,7 +531,7 @@ export default function ProfileSettingsModal({
 
             {/* TAB: DATA & PRIVACY */}
             {activeTab === 'data' && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-8 ">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1">Data & Privacy</h3>
                   <p className="text-slate-400 text-sm">Control your data and privacy settings.</p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import ProfileSettingsModal from './ProfileSettingsModal';
 import { db, storage } from '@/lib/firebase';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
@@ -14,6 +15,7 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
   const { user, dbUser } = useAuth();
   // If it's a journalist, skip the hub entirely and go straight to reporting
   const [isReporting, setIsReporting] = useState(isJournalist ? true : false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [currentStep, setCurrentStep] = useState<'capture' | 'analyze' | 'report'>('capture');
   const [content, setContent] = useState('');
   const [contentType, setContentType] = useState<'text' | 'url'>('text');
@@ -48,12 +50,18 @@ export default function ReporterView({ isJournalist = false }: { isJournalist?: 
       const [analyzeRes, toxRes] = await Promise.all([
         fetch('/api/analyze', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await user?.getIdToken()}`
+          },
           body: JSON.stringify({ content, contentType, imageBase64 }),
         }),
         fetch('/api/toxicity', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await user?.getIdToken()}`
+          },
           body: JSON.stringify({ content }),
         })
       ]);
@@ -165,6 +173,8 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   };
 
   const generatePDF = () => {
+    setIsGeneratingPdf(true);
+    try {
     const doc = new jsPDF();
     
     // --- BRAND HEADER ---
@@ -277,6 +287,9 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     doc.text(splitNotes, 20, y + 10);
     
     doc.save('Daleel-evidence-package.pdf');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const [stats, setStats] = useState({ total: 0, escalated: 0 });
@@ -328,7 +341,8 @@ const [isSubmitting, setIsSubmitting] = useState(false);
               >
                 Complete Profile <ChevronRight className="w-4 h-4" />
               </button>
-            </div>
+            {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
+</div>
           )}
 
           <button 

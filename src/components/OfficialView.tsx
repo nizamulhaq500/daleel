@@ -12,6 +12,7 @@ import ProfileSettingsModal from './ProfileSettingsModal';
 
 export default function OfficialView() {
   const { user, dbUser } = useAuth();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
   const [totalViolations, setTotalViolations] = useState(0);
   const [showProfileWarning, setShowProfileWarning] = useState(false);
@@ -47,6 +48,8 @@ export default function OfficialView() {
   }, []);
 
   const generatePDF = (report: any) => {
+    setIsGeneratingPdf(true);
+    try {
     const doc = new jsPDF();
     
     // --- BRAND HEADER ---
@@ -171,6 +174,9 @@ export default function OfficialView() {
     doc.text(splitNotes, 20, y + 10);
     
     doc.save(`Daleel-Official-Report-${report.id.substring(0,6)}.pdf`);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
