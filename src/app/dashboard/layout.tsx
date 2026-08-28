@@ -27,7 +27,11 @@ export default function DashboardLayout({
   }, [user, role, loading, pathname, router]);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#060910] flex items-center justify-center text-slate-400 text-xs font-mono">
+        Authenticating Secure Session...
+      </div>
+    );
   }
 
   if (!user || (role && !pathname?.startsWith(`/dashboard/${role}`))) {
@@ -37,9 +41,9 @@ export default function DashboardLayout({
   return (
     <DashboardLayoutWrapper>
       <Navbar />
-      <div className="flex-1 bg-slate-950/90 backdrop-blur-sm z-10 flex flex-col relative shadow-2xl shadow-slate-900/50">
+      <main className="flex-1 bg-[#090d16] flex flex-col relative z-0">
         {children}
-      </div>
+      </main>
     </DashboardLayoutWrapper>
   );
 }

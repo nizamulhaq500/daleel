@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import { db, storage } from '@/lib/firebase';
@@ -12,22 +13,20 @@ import {
   Upload, 
   FileText, 
   CheckCircle2, 
-  ArrowRight, 
   Download, 
   Hash, 
   Copy, 
   Check, 
   Send, 
   Trash2, 
-  Search, 
   Layers, 
   Eye, 
   Clock, 
   Lock, 
   X,
-  Share2,
-  ExternalLink,
-  BookOpen
+  Calendar,
+  Building,
+  Shield
 } from 'lucide-react';
 import { generateDossierPDF } from '@/lib/pdf-generator';
 
@@ -40,9 +39,53 @@ async function computeSha256(text: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export default function ReporterView() {
+function formatTimestamp(ts: any): string {
+  if (!ts) return 'Recent';
+  try {
+    if (ts.toDate && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    if (ts.seconds) {
+      return new Date(ts.seconds * 1000).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    if (typeof ts === 'string' || typeof ts === 'number') {
+      return new Date(ts).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  } catch (e) {
+    return 'Recent';
+  }
+  return 'Recent';
+}
+
+interface ReporterViewProps {
+  portalRole?: 'reporter' | 'journalist' | 'official';
+}
+
+export default function ReporterView({ portalRole = 'reporter' }: ReporterViewProps) {
   const { user, dbUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'intake' | 'locker'>('intake');
+  const [mounted, setMounted] = useState(false);
   
   // Form State
   const [content, setContent] = useState('');
@@ -66,6 +109,21 @@ export default function ReporterView() {
   const [reports, setReports] = useState<any[]>([]);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (selectedReport) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedReport]);
 
   useEffect(() => {
     if (!user) return;
@@ -104,7 +162,6 @@ export default function ReporterView() {
     setSubmissionSuccess(null);
     
     try {
-      // Calculate cryptographic SHA-256 fingerprint of evidence
       const hashSource = `${content}|${sourcePlatform}|${postUrl}|${imageBase64 ? imageBase64.substring(0, 100) : ''}`;
       const hash = await computeSha256(hashSource);
       setEvidenceHash(hash);
@@ -135,7 +192,6 @@ export default function ReporterView() {
       setToxicityScores(toxData);
     } catch (error) {
       console.error('Error analyzing content:', error);
-      // Clean fallback
       setAnalysisResult({
         severity: 'High',
         severityScore: 8,
@@ -170,10 +226,19 @@ export default function ReporterView() {
         }
       }
 
-      const docRef = await addDoc(collection(db, 'reports'), {
+      const isDirectJournalist = portalRole === 'journalist';
+      const isDirectOfficial = portalRole === 'official';
+
+      const docPayload: any = {
         reporterId: isAnonymous ? 'anonymous' : (user?.uid || 'anonymous'),
         reporterEmail: isAnonymous ? 'anonymous@daleel.org' : (user?.email || ''),
-        reporterName: isAnonymous ? 'Whistleblower Reporter' : (user?.displayName || dbUser?.name || 'Community Witness'),
+        reporterName: isAnonymous 
+          ? 'Whistleblower Reporter' 
+          : isDirectJournalist 
+          ? (dbUser?.name || user?.displayName || 'Newsroom Journalist')
+          : isDirectOfficial
+          ? (dbUser?.name || user?.displayName || 'Agency Official')
+          : (user?.displayName || dbUser?.name || 'Community Witness'),
         reporterPhone: isAnonymous ? '' : (dbUser?.phone || ''),
         reporterDob: isAnonymous ? '' : (dbUser?.dob || ''),
         content,
@@ -188,9 +253,27 @@ export default function ReporterView() {
         contextExplanation: analysisResult.contextExplanation || '',
         counterNarratives: analysisResult.counterNarratives || [],
         toxicityScores: toxicityScores || {},
-        status: 'pending',
+        status: (isDirectJournalist || isDirectOfficial) ? 'escalated' : 'pending',
         timestamp: serverTimestamp(),
-      });
+      };
+
+      if (isDirectJournalist) {
+        docPayload.escalatedBy = user?.uid;
+        docPayload.escalatedByName = dbUser?.name || user?.displayName || 'Newsroom Journalist';
+        docPayload.escalatedByOrg = dbUser?.organization || 'Investigative Desk';
+        docPayload.editorialNotes = 'Direct evidence submission filed and pre-verified by verified newsroom journalist.';
+        docPayload.escalatedAt = serverTimestamp();
+      }
+
+      if (isDirectOfficial) {
+        docPayload.officialActionBy = user?.uid;
+        docPayload.officialActionByName = dbUser?.name || user?.displayName || 'Agency Official';
+        docPayload.officialActionByDept = dbUser?.department || dbUser?.organization || 'Civil Rights & Enforcement Division';
+        docPayload.resolutionNote = 'Direct evidentiary filing ingested by official authority.';
+        docPayload.actionTakenAt = serverTimestamp();
+      }
+
+      const docRef = await addDoc(collection(db, 'reports'), docPayload);
 
       setSubmissionSuccess(docRef.id);
     } catch (err) {
@@ -204,7 +287,7 @@ export default function ReporterView() {
   const generatePDF = async (reportData: any) => {
     try {
       await generateDossierPDF({ 
-        role: 'reporter', 
+        role: portalRole, 
         report: { 
           ...reportData, 
           content: reportData.content || content,
@@ -240,6 +323,21 @@ We request immediate review and removal of this offending content in accordance 
 Reported via Daleel Evidence Repository (daleel.org)`;
   };
 
+  const roleTitle = 
+    portalRole === 'journalist' ? 'Journalist Direct Evidence Intake' :
+    portalRole === 'official' ? 'Official Evidence Ingestion Desk' :
+    'Incident Evidence & Analysis Desk';
+
+  const roleSubtitle =
+    portalRole === 'journalist' ? 'Directly ingest, decode, and publish verified evidence dossiers into the national pipeline.' :
+    portalRole === 'official' ? 'Ingest and preserve digital hate speech evidence directly from agency monitors or law enforcement referrals.' :
+    'Document digital hate speech, preserve platform metadata, and generate signed evidentiary dossiers.';
+
+  const roleBadge =
+    portalRole === 'journalist' ? 'Journalist Ingestion' :
+    portalRole === 'official' ? 'Official Ingestion' :
+    'Reporter Workspace';
+
   return (
     <div className="w-full min-h-screen bg-[#090d16] text-slate-100 p-4 sm:p-8">
       {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
@@ -250,16 +348,20 @@ Reported via Daleel Evidence Repository (daleel.org)`;
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Reporter Workspace
+              <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                portalRole === 'official' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                portalRole === 'journalist' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              }`}>
+                {roleBadge}
               </span>
               <span className="text-xs text-slate-400">&bull; Forensic Intake Active</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-              Incident Evidence & Analysis Desk
+              {roleTitle}
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Document digital hate speech, preserve platform metadata, and generate signed evidentiary dossiers.
+              {roleSubtitle}
             </p>
           </div>
 
@@ -269,7 +371,9 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               onClick={() => setActiveTab('intake')}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'intake' 
-                  ? 'bg-emerald-600 text-white shadow-sm' 
+                  ? portalRole === 'official' ? 'bg-amber-600 text-white shadow-sm' :
+                    portalRole === 'journalist' ? 'bg-blue-600 text-white shadow-sm' :
+                    'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -280,7 +384,9 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               onClick={() => setActiveTab('locker')}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'locker' 
-                  ? 'bg-emerald-600 text-white shadow-sm' 
+                  ? portalRole === 'official' ? 'bg-amber-600 text-white shadow-sm' :
+                    portalRole === 'journalist' ? 'bg-blue-600 text-white shadow-sm' :
+                    'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -398,7 +504,11 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               <button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || (!content.trim() && !imageBase64)}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm py-3 rounded-xl transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                className={`w-full text-white font-semibold text-xs sm:text-sm py-3 rounded-xl transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2 ${
+                  portalRole === 'official' ? 'bg-amber-600 hover:bg-amber-500' :
+                  portalRole === 'journalist' ? 'bg-blue-600 hover:bg-blue-500' :
+                  'bg-emerald-600 hover:bg-emerald-500'
+                }`}
               >
                 {isAnalyzing ? (
                   <>
@@ -503,7 +613,11 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                       <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>Report submitted to Journalist Queue (ID: #{submissionSuccess.substring(0, 8)})</span>
+                          <span>
+                            {portalRole === 'official' ? 'Dossier saved & certified in Official Registry' :
+                             portalRole === 'journalist' ? 'Evidence verified & pushed to Official Pipeline' :
+                             'Report submitted to Journalist Queue'} (ID: #{submissionSuccess.substring(0, 8)})
+                          </span>
                         </div>
                         <button
                           onClick={() => generatePDF({ ...analysisResult, content, sourcePlatform, postUrl, evidenceHash })}
@@ -517,10 +631,19 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                         <button
                           onClick={handleSubmitEvidence}
                           disabled={isSubmitting}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                          className={`font-semibold text-xs py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 text-white ${
+                            portalRole === 'official' ? 'bg-amber-600 hover:bg-amber-500' :
+                            portalRole === 'journalist' ? 'bg-blue-600 hover:bg-blue-500' :
+                            'bg-emerald-600 hover:bg-emerald-500'
+                          }`}
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>{isSubmitting ? 'Transmitting...' : 'Submit to Verification Queue'}</span>
+                          <span>
+                            {isSubmitting ? 'Transmitting...' : 
+                             portalRole === 'official' ? 'Certify & Save to Official Registry' :
+                             portalRole === 'journalist' ? 'Verify & Publish to Pipeline' :
+                             'Submit to Verification Queue'}
+                          </span>
                         </button>
 
                         <button
@@ -591,7 +714,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                     className="bg-slate-950 border border-slate-800/90 hover:border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
                   >
                     <div className="space-y-1 max-w-2xl">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[11px] font-mono text-emerald-400 font-semibold">
                           #{report.id.substring(0, 8).toUpperCase()}
                         </span>
@@ -604,6 +727,13 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         }`}>
                           {report.status === 'escalated' ? 'Verified & Escalated to Officials' : 'Under Review by Journalists'}
+                        </span>
+                        
+                        {/* Timestamp Tag */}
+                        <span className="text-slate-600">&bull;</span>
+                        <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          {formatTimestamp(report.timestamp)}
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-200 line-clamp-1 font-medium">
@@ -637,15 +767,28 @@ Reported via Daleel Evidence Repository (daleel.org)`;
 
       </div>
 
-      {/* INSPECTION MODAL FOR LOCKER */}
-      {selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      {/* INSPECTION MODAL FOR LOCKER (Mounted via Portal directly to body) */}
+      {selectedReport && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setSelectedReport(null)}
+        >
+          <div 
+            className="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <span className="text-[11px] font-mono text-emerald-400 block">
-                  DOSSIER #{selectedReport.id.toUpperCase()}
-                </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                    DOSSIER #{selectedReport.id.toUpperCase()}
+                  </span>
+                  <span className="text-slate-600">&bull;</span>
+                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    {formatTimestamp(selectedReport.timestamp)}
+                  </span>
+                </div>
                 <h3 className="text-base font-bold text-slate-100">
                   {selectedReport.sourcePlatform} Incident
                 </h3>
@@ -697,7 +840,8 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

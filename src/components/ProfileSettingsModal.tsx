@@ -1,5 +1,7 @@
 'use client';
 
+import { createPortal } from 'react-dom';
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, User, CheckCircle, AlertCircle, Camera, Phone, Calendar, Globe, Moon, Bell, Lock, ShieldCheck, Download, Trash2, Shield, Building2, Briefcase, FileSignature, Video } from 'lucide-react';
@@ -24,6 +26,17 @@ export default function ProfileSettingsModal({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   // General Profile
   const [name, setName] = useState(user?.displayName || '');
@@ -60,7 +73,7 @@ export default function ProfileSettingsModal({
     if (savedLang) setLang(savedLang);
   }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleLanguageChange = async (val: string) => {
     setLang(val);
@@ -133,7 +146,7 @@ export default function ProfileSettingsModal({
   const currentYear = new Date().getFullYear();
   const years = Array.from({length: 100}, (_, i) => String(currentYear - i));
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative ">
         
@@ -575,6 +588,5 @@ export default function ProfileSettingsModal({
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>, document.body);
 }

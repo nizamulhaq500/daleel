@@ -1,32 +1,68 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Shield, 
   Search, 
-  Filter, 
   FileText, 
   CheckCircle2, 
   Clock, 
   AlertTriangle, 
   Download, 
-  ArrowRight, 
-  ExternalLink, 
   Eye, 
   X, 
-  Send, 
   Check, 
   Copy, 
-  Layers, 
-  BookOpen,
-  MessageSquare,
   Building,
-  User
+  Calendar,
+  Send,
+  ListFilter
 } from 'lucide-react';
 import { generateDossierPDF } from '@/lib/pdf-generator';
+import ReporterView from './ReporterView';
+
+function formatTimestamp(ts: any): string {
+  if (!ts) return 'Recent';
+  try {
+    if (ts.toDate && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    if (ts.seconds) {
+      return new Date(ts.seconds * 1000).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    if (typeof ts === 'string' || typeof ts === 'number') {
+      return new Date(ts).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  } catch (e) {
+    return 'Recent';
+  }
+  return 'Recent';
+}
 
 export default function JournalistView() {
   const { user, dbUser } = useAuth();
@@ -34,6 +70,8 @@ export default function JournalistView() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'escalated'>('all');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [portalMode, setPortalMode] = useState<'triage' | 'intake'>('triage');
+  const [mounted, setMounted] = useState(false);
   
   // Selected Report for Deep Inspection & Escalation
   const [selectedReport, setSelectedReport] = useState<any>(null);
@@ -42,10 +80,24 @@ export default function JournalistView() {
   const [copiedPressBrief, setCopiedPressBrief] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (selectedReport) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedReport]);
+
+  useEffect(() => {
     const q = collection(db, 'reports');
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Sort newest first
       docs.sort((a: any, b: any) => {
         const timeA = a.timestamp?.seconds || 0;
         const timeB = b.timestamp?.seconds || 0;
@@ -109,6 +161,7 @@ export default function JournalistView() {
 **Date:** ${new Date().toLocaleDateString()}
 **Severity:** ${report.severity || 'High'}
 **Verified By:** ${user?.displayName || 'Investigative Fact-Checker'} (${dbUser?.organization || 'Newsroom'})
+**Submitted:** ${formatTimestamp(report.timestamp)}
 
 #### 1. Reported Incident
 > "${report.content || 'Visual screenshot submission'}"
@@ -142,167 +195,223 @@ ${editorialNotes || report.editorialNotes || 'Cross-referenced against Bridge In
               Community Evidence Triage Hub
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Validate community reports, cross-reference platform violations, and package verified briefs for public authorities.
+              Validate community reports, cross-reference platform violations, or file direct investigative evidence.
             </p>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-3">
-            <div className="bg-[#0f172a] border border-slate-800 p-3 rounded-xl min-w-[120px]">
-              <span className="text-[11px] text-slate-400 font-semibold block uppercase">Pending Triage</span>
-              <span className="text-xl font-bold text-amber-400">{pendingCount}</span>
-            </div>
-            <div className="bg-[#0f172a] border border-slate-800 p-3 rounded-xl min-w-[120px]">
-              <span className="text-[11px] text-slate-400 font-semibold block uppercase">Forwarded to Officials</span>
-              <span className="text-xl font-bold text-emerald-400">{escalatedCount}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter & Search Bar */}
-        <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-          <div className="flex-1 relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by keywords, slurs, report ID, or platform..."
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Status Filter */}
-            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          {/* Mode Switcher & Quick Metrics */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex items-center bg-[#0f172a] p-1.5 rounded-xl border border-slate-800">
               <button
-                onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                onClick={() => setPortalMode('triage')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  portalMode === 'triage'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
               >
-                All ({reports.length})
+                <ListFilter className="w-3.5 h-3.5" />
+                <span>Triage Desk</span>
               </button>
               <button
-                onClick={() => setStatusFilter('pending')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'pending' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400'}`}
+                onClick={() => setPortalMode('intake')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  portalMode === 'intake'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
               >
-                Pending ({pendingCount})
-              </button>
-              <button
-                onClick={() => setStatusFilter('escalated')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'escalated' ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400'}`}
-              >
-                Escalated ({escalatedCount})
+                <Send className="w-3.5 h-3.5" />
+                <span>Direct Ingest</span>
               </button>
             </div>
 
-            {/* Platform Filter */}
-            <select
-              value={platformFilter}
-              onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
-            >
-              <option value="all">All Platforms</option>
-              <option value="X (Twitter)">X (Twitter)</option>
-              <option value="TikTok">TikTok</option>
-              <option value="Facebook">Facebook / Meta</option>
-              <option value="Instagram">Instagram</option>
-              <option value="Telegram">Telegram</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Triage Queue List */}
-        <div className="space-y-4">
-          {filteredReports.length === 0 ? (
-            <div className="bg-[#0f172a] border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-sm">
-              No reports matching your active filters.
-            </div>
-          ) : (
-            filteredReports.map((report) => (
-              <div
-                key={report.id}
-                className="bg-[#0f172a] border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 group"
-              >
-                <div className="space-y-2 max-w-3xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-mono font-bold text-blue-400">
-                      #{report.id.substring(0, 8).toUpperCase()}
-                    </span>
-                    <span className="text-slate-700">&bull;</span>
-                    <span className="text-xs font-semibold text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                      {report.sourcePlatform || 'Social Media'}
-                    </span>
-                    <span className="text-slate-700">&bull;</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      report.severity === 'Critical'
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                    }`}>
-                      {report.severity || 'High'} Severity
-                    </span>
-                    <span className="text-slate-700">&bull;</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      report.status === 'escalated'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : 'bg-slate-800 text-slate-300'
-                    }`}>
-                      {report.status === 'escalated' ? 'Escalated to Official' : 'Awaiting Review'}
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-slate-200 font-medium leading-relaxed line-clamp-2">
-                    "{report.content || 'Attached visual evidence without text'}"
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
-                    <span>Reporter: <strong>{report.reporterName || 'Community Witness'}</strong></span>
-                    {report.evidenceHash && (
-                      <span className="font-mono text-[10px] text-slate-500">
-                        Hash: {report.evidenceHash.substring(0, 16)}...
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
-                  <button
-                    onClick={() => {
-                      setSelectedReport(report);
-                      setEditorialNotes(report.editorialNotes || '');
-                    }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Inspect & Validate</span>
-                  </button>
-
-                  <button
-                    onClick={() => generateJournalistPDF(report)}
-                    className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs rounded-xl transition-colors flex items-center gap-1.5"
-                    title="Export PDF Brief"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Brief</span>
-                  </button>
-                </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-[#0f172a] border border-slate-800 px-3 py-2 rounded-xl min-w-[90px]">
+                <span className="text-[10px] text-slate-400 font-semibold block uppercase">Pending</span>
+                <span className="text-lg font-bold text-amber-400">{pendingCount}</span>
               </div>
-            ))
-          )}
+              <div className="bg-[#0f172a] border border-slate-800 px-3 py-2 rounded-xl min-w-[90px]">
+                <span className="text-[10px] text-slate-400 font-semibold block uppercase">Forwarded</span>
+                <span className="text-lg font-bold text-emerald-400">{escalatedCount}</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* CONDITIONAL BODY: DIRECT INTAKE vs TRIAGE DESK */}
+        {portalMode === 'intake' ? (
+          <div className="pt-2">
+            <ReporterView portalRole="journalist" />
+          </div>
+        ) : (
+          <>
+            {/* Filter & Search Bar */}
+            <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+              <div className="flex-1 relative">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by keywords, slurs, report ID, or platform..."
+                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Status Filter */}
+                <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  >
+                    All ({reports.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('pending')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'pending' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400'}`}
+                  >
+                    Pending ({pendingCount})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('escalated')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${statusFilter === 'escalated' ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400'}`}
+                  >
+                    Escalated ({escalatedCount})
+                  </button>
+                </div>
+
+                {/* Platform Filter */}
+                <select
+                  value={platformFilter}
+                  onChange={(e) => setPlatformFilter(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Platforms</option>
+                  <option value="X (Twitter)">X (Twitter)</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="Facebook">Facebook / Meta</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Telegram">Telegram</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Triage Queue List */}
+            <div className="space-y-4">
+              {filteredReports.length === 0 ? (
+                <div className="bg-[#0f172a] border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-sm">
+                  No reports matching your active filters.
+                </div>
+              ) : (
+                filteredReports.map((report) => (
+                  <div
+                    key={report.id}
+                    className="bg-[#0f172a] border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 group"
+                  >
+                    <div className="space-y-2 max-w-3xl">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-mono font-bold text-blue-400">
+                          #{report.id.substring(0, 8).toUpperCase()}
+                        </span>
+                        <span className="text-slate-700">&bull;</span>
+                        <span className="text-xs font-semibold text-slate-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                          {report.sourcePlatform || 'Social Media'}
+                        </span>
+                        <span className="text-slate-700">&bull;</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          report.severity === 'Critical'
+                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}>
+                          {report.severity || 'High'} Severity
+                        </span>
+                        <span className="text-slate-700">&bull;</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          report.status === 'escalated'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-slate-800 text-slate-300'
+                        }`}>
+                          {report.status === 'escalated' ? 'Escalated to Official' : 'Awaiting Review'}
+                        </span>
+
+                        {/* Timestamp Tag */}
+                        <span className="text-slate-700">&bull;</span>
+                        <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                          <Clock className="w-3 h-3 text-slate-500" />
+                          {formatTimestamp(report.timestamp)}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-slate-200 font-medium leading-relaxed line-clamp-2">
+                        "{report.content || 'Attached visual evidence without text'}"
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
+                        <span>Reporter: <strong>{report.reporterName || 'Community Witness'}</strong></span>
+                        {report.evidenceHash && (
+                          <span className="font-mono text-[10px] text-slate-500">
+                            Hash: {report.evidenceHash.substring(0, 16)}...
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                      <button
+                        onClick={() => {
+                          setSelectedReport(report);
+                          setEditorialNotes(report.editorialNotes || '');
+                        }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Inspect & Validate</span>
+                      </button>
+
+                      <button
+                        onClick={() => generateJournalistPDF(report)}
+                        className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs rounded-xl transition-colors flex items-center gap-1.5"
+                        title="Export PDF Brief"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Brief</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
 
       </div>
 
-      {/* DEEP-DIVE INSPECTION & ESCALATION MODAL */}
-      {selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      {/* DEEP-DIVE INSPECTION & ESCALATION MODAL (Mounted via Portal directly to body) */}
+      {selectedReport && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setSelectedReport(null)}
+        >
+          <div 
+            className="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div>
-                <span className="text-[11px] font-mono text-blue-400 font-bold block mb-1">
-                  CASE DOSSIER #{selectedReport.id.toUpperCase()}
-                </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-mono text-blue-400 font-bold">
+                    CASE DOSSIER #{selectedReport.id.toUpperCase()}
+                  </span>
+                  <span className="text-slate-600">&bull;</span>
+                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    {formatTimestamp(selectedReport.timestamp)}
+                  </span>
+                </div>
                 <h3 className="text-lg font-bold text-slate-100">
                   Incident Verification & Escalation Desk
                 </h3>
@@ -320,7 +429,7 @@ ${editorialNotes || report.editorialNotes || 'Cross-referenced against Bridge In
               
               {/* Original Content & Screenshot */}
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between text-xs text-slate-400">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <span>Source Platform: <strong>{selectedReport.sourcePlatform}</strong></span>
                   <span>URL: {selectedReport.postUrl ? <a href={selectedReport.postUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{selectedReport.postUrl}</a> : 'Not provided'}</span>
                 </div>
@@ -331,7 +440,7 @@ ${editorialNotes || report.editorialNotes || 'Cross-referenced against Bridge In
 
                 {selectedReport.imageBase64 && (
                   <div>
-                    <span className="text-xs font-semibold text-slate-400 block mb-1">Preserved Screenshot Evidence:</span>
+                    <span className="text-xs font-semibold text-slate-400 block mb-1">Preserved Visual Evidence:</span>
                     <img src={selectedReport.imageBase64} alt="Evidence" className="w-full max-h-64 object-cover rounded-lg border border-slate-800" />
                   </div>
                 )}
@@ -415,7 +524,8 @@ ${editorialNotes || report.editorialNotes || 'Cross-referenced against Bridge In
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
