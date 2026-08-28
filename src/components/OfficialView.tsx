@@ -101,18 +101,41 @@ export default function OfficialView() {
   }, [selectedCase]);
 
   useEffect(() => {
-    const q = collection(db, 'reports');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      const officialDocs = docs.filter((d: any) => d.status === 'escalated' || d.status === 'takedown_requested' || d.status === 'resolved');
-      officialDocs.sort((a: any, b: any) => {
-        const timeA = a.timestamp?.seconds || 0;
-        const timeB = b.timestamp?.seconds || 0;
-        return timeB - timeA;
+    try {
+      const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+      if (Array.isArray(local) && local.length > 0) {
+        const offLocal = local.filter((d: any) => d.status === 'escalated' || d.status === 'takedown_requested' || d.status === 'resolved');
+        setReports(offLocal);
+      }
+    } catch (e) {}
+
+    try {
+      const q = collection(db, 'reports');
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        try {
+          const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+          const remoteIds = new Set(docs.map(d => d.id));
+          const pendingLocal = Array.isArray(local) ? local.filter((l: any) => !remoteIds.has(l.id)) : [];
+          const allDocs = [...pendingLocal, ...docs];
+          const officialDocs = allDocs.filter((d: any) => d.status === 'escalated' || d.status === 'takedown_requested' || d.status === 'resolved');
+          officialDocs.sort((a: any, b: any) => {
+            const timeA = a.timestamp?.seconds || (a.timestamp ? new Date(a.timestamp).getTime() / 1000 : 0);
+            const timeB = b.timestamp?.seconds || (b.timestamp ? new Date(b.timestamp).getTime() / 1000 : 0);
+            return timeB - timeA;
+          });
+          setReports(officialDocs);
+        } catch (e) {
+          const officialDocs = docs.filter((d: any) => d.status === 'escalated' || d.status === 'takedown_requested' || d.status === 'resolved');
+          setReports(officialDocs);
+        }
+      }, (err) => {
+        console.warn("Official view onSnapshot error:", err);
       });
-      setReports(officialDocs);
-    });
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn("Failed to subscribe in OfficialView:", e);
+    }
   }, []);
 
   const filteredReports = reports.filter((r) => {

@@ -12,13 +12,33 @@ export default function ReporterHistory() {
   const [selectedReport, setSelectedReport] = useState<any>(null);
 
   useEffect(() => {
+    try {
+      const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+      if (Array.isArray(local) && local.length > 0) {
+        setReports(local);
+      }
+    } catch (e) {}
+
     if (!user) return;
-    const q = query(collection(db, 'reports'), where('reporterId', '==', user?.uid || ''), orderBy('timestamp', 'desc'), limit(15));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReports(docs);
-    });
-    return () => unsubscribe();
+    try {
+      const q = query(collection(db, 'reports'), where('reporterId', '==', user?.uid || ''), orderBy('timestamp', 'desc'), limit(15));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        try {
+          const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+          const remoteIds = new Set(docs.map(d => d.id));
+          const pendingLocal = Array.isArray(local) ? local.filter((l: any) => !remoteIds.has(l.id)) : [];
+          setReports([...pendingLocal, ...docs]);
+        } catch (e) {
+          setReports(docs);
+        }
+      }, (err) => {
+        console.warn("ReporterHistory onSnapshot error:", err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn("Failed to subscribe to reporter history:", e);
+    }
   }, [user]);
 
   return (

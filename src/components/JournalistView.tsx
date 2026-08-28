@@ -102,17 +102,38 @@ export default function JournalistView() {
   }, [selectedReport]);
 
   useEffect(() => {
-    const q = collection(db, 'reports');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      docs.sort((a: any, b: any) => {
-        const timeA = a.timestamp?.seconds || 0;
-        const timeB = b.timestamp?.seconds || 0;
-        return timeB - timeA;
+    try {
+      const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+      if (Array.isArray(local) && local.length > 0) {
+        setReports(local);
+      }
+    } catch (e) {}
+
+    try {
+      const q = collection(db, 'reports');
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        try {
+          const local = JSON.parse(localStorage.getItem('daleel_local_reports') || '[]');
+          const remoteIds = new Set(docs.map(d => d.id));
+          const pendingLocal = Array.isArray(local) ? local.filter((l: any) => !remoteIds.has(l.id)) : [];
+          const merged = [...pendingLocal, ...docs];
+          merged.sort((a: any, b: any) => {
+            const timeA = a.timestamp?.seconds || (a.timestamp ? new Date(a.timestamp).getTime() / 1000 : 0);
+            const timeB = b.timestamp?.seconds || (b.timestamp ? new Date(b.timestamp).getTime() / 1000 : 0);
+            return timeB - timeA;
+          });
+          setReports(merged);
+        } catch (e) {
+          setReports(docs);
+        }
+      }, (err) => {
+        console.warn("Journalist view onSnapshot error:", err);
       });
-      setReports(docs);
-    });
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn("Failed to subscribe in JournalistView:", e);
+    }
   }, []);
 
   const filteredReports = reports.filter((r) => {
