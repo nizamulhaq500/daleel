@@ -113,22 +113,22 @@ export default function OnboardingTour({
       onClick={onClose}
     >
       <div 
-        className="bg-[#0f172a] border border-slate-700 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-[#ffffff] dark:bg-[#0f172a] border border-[#dfd2bf] dark:border-slate-700 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header & Step Indicator */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[#dfd2bf] dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded border ${currentStep.badgeColor}`}>
               {currentStep.badge}
             </span>
-            <span className="text-xs text-slate-400">&bull; Step {currentStepIndex + 1} of 3</span>
+            <span className="text-xs text-[#705845] dark:text-slate-400 font-medium">&bull; Step {currentStepIndex + 1} of 3</span>
           </div>
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-slate-200 dark:hover:text-white p-1 rounded-lg hover:bg-[#f5ebe0] dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -137,28 +137,28 @@ export default function OnboardingTour({
         {/* Step Body */}
         <div className="space-y-4">
           <div className="flex items-start gap-4">
-            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-emerald-400 shrink-0 mt-1">
+            <div className="p-3 rounded-2xl bg-[#ede2d3] dark:bg-slate-900 border border-[#dfd2bf] dark:border-slate-800 text-emerald-600 dark:text-emerald-400 shrink-0 mt-1">
               <Icon className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-slate-100 leading-snug">
+              <h2 className="text-xl font-extrabold text-[#1e140d] dark:text-slate-100 leading-snug">
                 {currentStep.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#382619] dark:text-slate-300 mt-1.5 leading-relaxed font-medium">
                 {currentStep.description}
               </p>
             </div>
           </div>
 
           {/* Details List */}
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+          <div className="bg-[#fdfaf5] dark:bg-slate-950 p-4 rounded-2xl border border-[#dfd2bf] dark:border-slate-800 space-y-2.5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#705845] dark:text-slate-400 block">
               Core Technical Capabilities:
             </span>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-[#382619] dark:text-slate-300 font-medium">
               {currentStep.details.map((detail, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{detail}</span>
                 </li>
               ))}
@@ -167,7 +167,7 @@ export default function OnboardingTour({
         </div>
 
         {/* Navigation & Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#dfd2bf] dark:border-slate-800">
           
           {/* Progress Dots */}
           <div className="flex items-center gap-2">
@@ -175,8 +175,8 @@ export default function OnboardingTour({
               <button
                 key={idx}
                 onClick={() => setCurrentStepIndex(idx)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  idx === currentStepIndex ? 'w-8 bg-emerald-400' : 'bg-slate-700 hover:bg-slate-600'
+                className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
+                  idx === currentStepIndex ? 'w-8 bg-emerald-500' : 'bg-[#dfd2bf] dark:bg-slate-700 hover:bg-[#cfc1b0] dark:hover:bg-slate-600'
                 }`}
               />
             ))}
@@ -187,7 +187,7 @@ export default function OnboardingTour({
             {currentStepIndex > 0 && (
               <button
                 onClick={() => setCurrentStepIndex((prev) => prev - 1)}
-                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                className="px-3.5 py-2 bg-[#ede2d3] hover:bg-[#e4d5c3] dark:bg-slate-900 dark:hover:bg-slate-800 border border-[#dfd2bf] dark:border-slate-800 text-[#1e140d] dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Previous</span>
@@ -197,7 +197,7 @@ export default function OnboardingTour({
             {currentStepIndex < TOUR_STEPS.length - 1 ? (
               <button
                 onClick={() => setCurrentStepIndex((prev) => prev + 1)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
               >
                 <span>Next Feature</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -208,7 +208,7 @@ export default function OnboardingTour({
                   onClose();
                   router.push(currentStep.actionRoute);
                 }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
               >
                 <span>{currentStep.actionText}</span>
                 <ArrowRight className="w-3.5 h-3.5" />

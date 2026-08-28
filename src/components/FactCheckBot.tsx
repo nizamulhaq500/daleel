@@ -134,8 +134,8 @@ export default function FactCheckBot() {
 
   // Dimensions based on maximized state
   const windowClasses = isMaximized 
-    ? "fixed top-20 right-4 left-4 bottom-4 md:right-16 md:left-16 lg:left-1/2 lg:-translate-x-1/2 lg:w-[860px] h-[calc(100vh-100px)] max-h-none"
-    : "fixed top-20 right-4 w-96 h-[580px] max-h-[82vh] origin-top-right";
+    ? "fixed inset-3 sm:top-20 sm:right-16 sm:left-16 lg:left-1/2 lg:-translate-x-1/2 lg:w-[860px] h-[calc(100vh-24px)] sm:h-[calc(100vh-100px)] max-h-none z-50"
+    : "fixed inset-x-3 bottom-3 top-16 sm:inset-auto sm:top-20 sm:right-4 sm:w-96 sm:h-[580px] sm:max-h-[82vh] origin-top-right z-50";
 
   return (
     <div className="relative z-[100]">

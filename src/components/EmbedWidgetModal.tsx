@@ -80,21 +80,21 @@ export default function DaleelFactCheckWidget() {
       onClick={onClose}
     >
       <div 
-        className="bg-[#0f172a] border border-slate-700 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-[#ffffff] dark:bg-[#0f172a] border border-[#dfd2bf] dark:border-slate-700 rounded-3xl max-w-4xl w-full p-4 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[#dfd2bf] dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <Code2 className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-100">
+              <h2 className="text-xl font-bold text-[#1e140d] dark:text-slate-100">
                 Embeddable Fact-Check Widget Generator
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#705845] dark:text-slate-400 mt-0.5">
                 Embed Daleel's verified AI fact-checking terminal on your blog, newsroom, or student newspaper.
               </p>
             </div>
@@ -102,7 +102,7 @@ export default function DaleelFactCheckWidget() {
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-slate-200 dark:hover:text-white p-1 rounded-lg hover:bg-[#f5ebe0] dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -114,28 +114,28 @@ export default function DaleelFactCheckWidget() {
           {/* Left Column: Live Preview */}
           <div className="lg:col-span-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#523d2e] dark:text-slate-300 flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 Live Widget Preview
               </span>
               
               {/* Theme Picker */}
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+              <div className="flex items-center gap-1 bg-[#f7efe4] dark:bg-slate-950 p-1 rounded-lg border border-[#dfd2bf] dark:border-slate-800 text-[11px]">
                 <button
                   onClick={() => setWidgetTheme('dark')}
-                  className={`px-2 py-0.5 rounded ${widgetTheme === 'dark' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  className={`px-2 py-0.5 rounded cursor-pointer ${widgetTheme === 'dark' ? 'bg-[#c26e27] dark:bg-slate-800 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   Dark Slate
                 </button>
                 <button
                   onClick={() => setWidgetTheme('midnight')}
-                  className={`px-2 py-0.5 rounded ${widgetTheme === 'midnight' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  className={`px-2 py-0.5 rounded cursor-pointer ${widgetTheme === 'midnight' ? 'bg-[#c26e27] dark:bg-slate-800 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   Midnight
                 </button>
                 <button
                   onClick={() => setWidgetTheme('emerald')}
-                  className={`px-2 py-0.5 rounded ${widgetTheme === 'emerald' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+                  className={`px-2 py-0.5 rounded cursor-pointer ${widgetTheme === 'emerald' ? 'bg-[#c26e27] dark:bg-slate-800 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   Emerald
                 </button>
@@ -181,28 +181,28 @@ export default function DaleelFactCheckWidget() {
           {/* Right Column: Code Snippet & Configuration */}
           <div className="lg:col-span-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <Code2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#523d2e] dark:text-slate-300 flex items-center gap-1.5">
+                <Code2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 Integration Code
               </span>
 
               {/* Code Format Switcher */}
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+              <div className="flex items-center gap-1 bg-[#f7efe4] dark:bg-slate-950 p-1 rounded-lg border border-[#dfd2bf] dark:border-slate-800 text-[11px]">
                 <button
                   onClick={() => setCodeType('iframe')}
-                  className={`px-2.5 py-1 rounded font-medium ${codeType === 'iframe' ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}
+                  className={`px-2.5 py-1 rounded font-medium cursor-pointer ${codeType === 'iframe' ? 'bg-[#c26e27] dark:bg-emerald-600 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   iFrame
                 </button>
                 <button
                   onClick={() => setCodeType('react')}
-                  className={`px-2.5 py-1 rounded font-medium ${codeType === 'react' ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}
+                  className={`px-2.5 py-1 rounded font-medium cursor-pointer ${codeType === 'react' ? 'bg-[#c26e27] dark:bg-emerald-600 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   React / Next.js
                 </button>
                 <button
                   onClick={() => setCodeType('webcomponent')}
-                  className={`px-2.5 py-1 rounded font-medium ${codeType === 'webcomponent' ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}
+                  className={`px-2.5 py-1 rounded font-medium cursor-pointer ${codeType === 'webcomponent' ? 'bg-[#c26e27] dark:bg-emerald-600 text-white' : 'text-[#705845] dark:text-slate-400'}`}
                 >
                   Web Component
                 </button>
@@ -211,7 +211,7 @@ export default function DaleelFactCheckWidget() {
 
             {/* Code Output Box */}
             <div className="relative">
-              <pre className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-slate-300 font-mono text-xs overflow-x-auto leading-relaxed">
+              <pre className="bg-[#fdfaf5] dark:bg-slate-950 p-4 rounded-2xl border border-[#dfd2bf] dark:border-slate-800 text-[#1e140d] dark:text-slate-300 font-mono text-xs overflow-x-auto leading-relaxed">
                 {getEmbedCode()}
               </pre>
             </div>
@@ -222,7 +222,7 @@ export default function DaleelFactCheckWidget() {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
+              className="w-full bg-[#c26e27] hover:bg-[#a05417] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
               {copied ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Code Snippet Copied to Clipboard!' : 'Copy Embed Code Snippet'}</span>
@@ -232,10 +232,10 @@ export default function DaleelFactCheckWidget() {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end pt-2 border-t border-slate-800">
+        <div className="flex justify-end pt-2 border-t border-[#dfd2bf] dark:border-slate-800">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors"
+            className="px-5 py-2.5 bg-[#ede2d3] hover:bg-[#e4d5c3] dark:bg-slate-800 dark:hover:bg-slate-700 text-[#1e140d] dark:text-slate-200 border border-[#dfd2bf] dark:border-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
           >
             Done
           </button>

@@ -201,7 +201,7 @@ export default function ThreatHeatmap() {
           </div>
 
           {/* Right Column: Deep-Dive Forensic Dossier */}
-          <div className="lg:col-span-6 bg-[#0f172a] border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6 sticky top-24">
+          <div className="lg:col-span-6 bg-[#0f172a] border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6 lg:sticky lg:top-24">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div>

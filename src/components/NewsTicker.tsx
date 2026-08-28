@@ -199,7 +199,7 @@ export default function NewsTicker() {
         </div>
 
         {/* Working Reference Link Footer */}
-        <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+        <div className="pt-3 mt-3 border-t border-[#dfd2bf] dark:border-slate-800/80 flex items-center justify-between text-xs flex-wrap gap-2">
           <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Verified Source: <strong className="text-slate-200">{currentCase.sourceOrg}</strong></span>

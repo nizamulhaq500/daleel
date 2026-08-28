@@ -63,11 +63,11 @@ export default function ProfileCompletionModal() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
+      <div className="bg-[#ffffff] dark:bg-slate-900 border border-[#dfd2bf] dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
 
         <button 
           onClick={() => setIsDismissed(true)} 
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 dark:hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -78,28 +78,16 @@ export default function ProfileCompletionModal() {
         {role === 'reporter' && <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>}
 
         <div className="text-center mb-8">
-          {role === 'official' ? (
-            <div className="bg-amber-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-amber-500" />
-            </div>
-          ) : role === 'journalist' ? (
-            <div className="bg-[#c26e27]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileSignature className="w-8 h-8 text-blue-500" />
-            </div>
-          ) : (
-            <div className="bg-emerald-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserCircle className="w-8 h-8 text-emerald-500" />
-            </div>
-          )}
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Complete Your Profile
-          </h2>
-          <p className="text-slate-400 text-sm">
-            {role === 'official' 
-              ? 'Please provide your official credentials for accountability.'
-              : role === 'journalist'
-              ? 'Help us personalize your dashboard by providing your organization info.'
-              : 'Update your contact info to help verify your community reports.'}
+          <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+            {role === 'official' && <Shield className="w-6 h-6 text-amber-500" />}
+            {role === 'journalist' && <FileSignature className="w-6 h-6 text-[#c26e27]" />}
+            {role === 'reporter' && <UserCircle className="w-6 h-6 text-emerald-500" />}
+          </div>
+          <h2 className="text-2xl font-bold text-[#1e140d] dark:text-white mb-2">Complete Your Profile</h2>
+          <p className="text-sm text-[#523d2e] dark:text-slate-400">
+            {role === 'reporter' ? 'Please provide your basic contact details to finalize registration.' :
+             role === 'journalist' ? 'Please verify your media organization and reporting credentials.' :
+             'Please provide your agency details and statutory badge ID.'}
           </p>
         </div>
 

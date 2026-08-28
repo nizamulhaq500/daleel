@@ -97,61 +97,61 @@ export default function Narratives() {
           onClick={() => setSelectedNarrative(null)}
         >
           <div 
-            className="bg-[#0f172a] border border-slate-700/80 rounded-2xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl animate-in zoom-in-95 duration-200"
+            className="bg-[#ffffff] dark:bg-[#0f172a] border border-[#dfd2bf] dark:border-slate-700/80 rounded-2xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <button 
               onClick={() => setSelectedNarrative(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 bg-slate-900 rounded-full hover:bg-slate-800"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 dark:hover:text-white transition-colors p-2 bg-[#ede2d3] dark:bg-slate-900 rounded-full hover:bg-[#e4d5c3] dark:hover:bg-slate-800 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
             
             <div className="mb-6 pt-1">
-              <span className="inline-block px-2.5 py-1 bg-red-500/10 text-red-400 text-xs font-semibold rounded mb-3">
+              <span className="inline-block px-2.5 py-1 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold rounded mb-3">
                 False Narrative: {selectedNarrative.category}
               </span>
-              <h3 className="text-xl font-bold text-slate-100 leading-snug">
+              <h3 className="text-xl font-bold text-[#1e140d] dark:text-slate-100 leading-snug">
                 "{selectedNarrative.claim}"
               </h3>
             </div>
             
-            <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 mb-6">
-              <span className="inline-block px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded mb-3">
+            <div className="bg-[#fdfaf5] dark:bg-slate-950 p-5 rounded-xl border border-[#dfd2bf] dark:border-slate-800 mb-6">
+              <span className="inline-block px-2 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded mb-3">
                 Factual Reality & Context
               </span>
-              <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-[#1e140d] dark:text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
                 {selectedNarrative.reality}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-800">
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="pt-4 border-t border-[#dfd2bf] dark:border-slate-800">
+              <h4 className="text-xs font-semibold text-[#705845] dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Share2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 Disseminate Counter-Narrative
               </h4>
               <div className="flex flex-wrap gap-2">
                 <button 
                   onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("False Claim: " + selectedNarrative.claim + "\n\nVerified Fact: " + selectedNarrative.reality + "\n\nvia @Daleel")}`, '_blank')}
-                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 bg-[#ede2d3] dark:bg-slate-900 hover:bg-[#e4d5c3] dark:hover:bg-slate-800 text-[#1e140d] dark:text-slate-200 border border-[#dfd2bf] dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 >
-                  <Twitter className="w-3.5 h-3.5 text-sky-400" /> X (Twitter)
+                  <Twitter className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" /> X (Twitter)
                 </button>
                 <button 
                   onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Fact Check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
-                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 bg-[#ede2d3] dark:bg-slate-900 hover:bg-[#e4d5c3] dark:hover:bg-slate-800 text-[#1e140d] dark:text-slate-200 border border-[#dfd2bf] dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" /> WhatsApp
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> WhatsApp
                 </button>
                 <button 
                   onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://daleel.org&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
-                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 bg-[#ede2d3] dark:bg-slate-900 hover:bg-[#e4d5c3] dark:hover:bg-slate-800 text-[#1e140d] dark:text-slate-200 border border-[#dfd2bf] dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                 >
-                  <Linkedin className="w-3.5 h-3.5 text-blue-400" /> LinkedIn
+                  <Linkedin className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> LinkedIn
                 </button>
                 <button 
                   onClick={() => copyToClipboard(`Fact Check:\n\nClaim: ${selectedNarrative.claim}\n\nReality: ${selectedNarrative.reality}`)}
-                  className="flex items-center gap-1.5 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ml-auto"
+                  className="flex items-center gap-1.5 bg-emerald-600/20 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ml-auto cursor-pointer"
                 >
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />} 
                   {copied ? 'Copied to Clipboard!' : 'Copy Summary'}

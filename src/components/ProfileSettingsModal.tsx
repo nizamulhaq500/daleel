@@ -147,21 +147,21 @@ export default function ProfileSettingsModal({
   const years = Array.from({length: 100}, (_, i) => String(currentYear - i));
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative ">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-[#ffffff] dark:bg-slate-900 border border-[#dfd2bf] dark:border-slate-800 rounded-3xl w-full max-w-5xl h-[90vh] md:h-[85vh] flex flex-col md:flex-row overflow-hidden shadow-2xl relative">
         
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/50">
-          <h2 className="text-lg font-bold text-white">Settings</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-[#dfd2bf] dark:border-slate-800 bg-[#f7efe4] dark:bg-slate-950/50">
+          <h2 className="text-lg font-bold text-[#1e140d] dark:text-white">Settings</h2>
+          <button onClick={onClose} className="p-2 hover:bg-[#f5ebe0] dark:hover:bg-slate-800 rounded-full text-slate-400 hover:text-slate-200 dark:hover:text-white transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Sidebar */}
-        <div className="w-full md:w-64 lg:w-72 bg-slate-950/50 border-r border-slate-800 flex flex-col flex-shrink-0">
+        <div className="w-full md:w-64 lg:w-72 bg-[#f7efe4] dark:bg-slate-950/50 border-r border-[#dfd2bf] dark:border-slate-800 flex flex-col flex-shrink-0">
           <div className="hidden md:flex items-center justify-between p-6">
-            <h2 className="text-xl font-bold text-white">Settings</h2>
+            <h2 className="text-xl font-bold text-[#1e140d] dark:text-white">Settings</h2>
           </div>
           
           <div className="flex-1 overflow-y-auto py-2 px-4 space-y-1 custom-scrollbar">
@@ -208,9 +208,9 @@ export default function ProfileSettingsModal({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col min-h-0 bg-slate-900">
+        <div className="flex-1 flex flex-col min-h-0 bg-[#ffffff] dark:bg-slate-900">
           <div className="hidden md:flex justify-end p-4">
-            <button onClick={onClose} className="p-2 bg-slate-800/50 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-2 bg-[#ede2d3] dark:bg-slate-800/50 hover:bg-[#e4d5c3] dark:hover:bg-slate-800 rounded-full text-[#523d2e] dark:text-slate-400 hover:text-[#1e140d] dark:hover:text-white transition-colors cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -219,10 +219,10 @@ export default function ProfileSettingsModal({
             
             {/* TAB: PROFILE */}
             {activeTab === 'profile' && (
-              <form onSubmit={handleSave} className="space-y-8  max-w-3xl">
+              <form onSubmit={handleSave} className="space-y-8 max-w-3xl">
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-1">Public Profile</h3>
-                  <p className="text-slate-400 text-sm">Manage your personal information and contact details.</p>
+                  <h3 className="text-2xl font-bold text-[#1e140d] dark:text-white mb-1">Public Profile</h3>
+                  <p className="text-[#523d2e] dark:text-slate-400 text-sm">Manage your personal information and contact details.</p>
                 </div>
 
                 {error && (

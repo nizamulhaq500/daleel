@@ -125,21 +125,21 @@ export default function SlurLexiconModal({
       onClick={onClose}
     >
       <div 
-        className="bg-[#0f172a] border border-slate-700 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-[#ffffff] dark:bg-[#0f172a] border border-[#dfd2bf] dark:border-slate-700 rounded-3xl max-w-4xl w-full p-4 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[#dfd2bf] dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-[#c26e27]/10 text-[#c26e27] border border-[#c26e27]/20">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-100">
+              <h2 className="text-xl font-bold text-[#1e140d] dark:text-slate-100">
                 Academic Coded Slur & Disinformation Lexicon
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#705845] dark:text-slate-400 mt-0.5">
                 Peer-reviewed dictionary of dog-whistles, bypass tactics, and factual refutations.
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function SlurLexiconModal({
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-slate-200 dark:hover:text-white p-1 rounded-lg hover:bg-[#f5ebe0] dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -162,17 +162,17 @@ export default function SlurLexiconModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search lexicon by dog-whistle, meaning, or fact check..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#c26e27]"
+              className="w-full bg-[#ffffff] dark:bg-slate-950 border border-[#dfd2bf] dark:border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-[#1e140d] dark:text-slate-200 placeholder-[#9c8571] dark:placeholder-slate-500 focus:outline-none focus:border-[#c26e27]"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0 overflow-x-auto">
+          <div className="flex items-center gap-1 bg-[#f7efe4] dark:bg-slate-950 p-1 rounded-xl border border-[#dfd2bf] dark:border-slate-800 text-xs shrink-0 overflow-x-auto">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                  selectedCategory === cat ? 'bg-[#c26e27] text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  selectedCategory === cat ? 'bg-[#c26e27] text-white shadow-sm' : 'text-[#523d2e] dark:text-slate-400 hover:text-[#1e140d] dark:hover:text-slate-200'
                 }`}
               >
                 {cat}
@@ -191,21 +191,21 @@ export default function SlurLexiconModal({
             filteredEntries.map((entry, idx) => (
               <div 
                 key={idx}
-                className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3.5 hover:border-slate-700 transition-colors"
+                className="bg-[#fdfaf5] dark:bg-slate-950 border border-[#dfd2bf] dark:border-slate-800 rounded-2xl p-5 space-y-3.5 hover:border-[#c26e27]/40 dark:hover:border-slate-700 transition-colors shadow-sm"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-sm font-bold text-slate-100">
+                    <span className="font-mono text-sm font-bold text-[#1e140d] dark:text-slate-100">
                       "{entry.term}"
                     </span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      entry.severity === 'Critical' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                      entry.severity === 'High' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                      entry.severity === 'Critical' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+                      entry.severity === 'High' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' :
                       'bg-[#c26e27]/10 text-[#c26e27] border border-[#c26e27]/20'
                     }`}>
                       {entry.severity} Threat
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                    <span className="text-[10px] font-semibold text-[#523d2e] dark:text-slate-400 bg-[#ede2d3] dark:bg-slate-900 px-2 py-0.5 rounded border border-[#dfd2bf] dark:border-slate-800">
                       {entry.category}
                     </span>
                   </div>
@@ -216,7 +216,7 @@ export default function SlurLexiconModal({
                       setCopiedIndex(idx);
                       setTimeout(() => setCopiedIndex(null), 2000);
                     }}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800 transition-colors w-max"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#ede2d3] dark:bg-slate-900 hover:bg-[#e4d5c3] dark:hover:bg-slate-800 text-[#1e140d] dark:text-slate-300 text-xs border border-[#dfd2bf] dark:border-slate-800 transition-colors w-max cursor-pointer"
                   >
                     {copiedIndex === idx ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedIndex === idx ? 'Copied Citation' : 'Copy Citation'}</span>
