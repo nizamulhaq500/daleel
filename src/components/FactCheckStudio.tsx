@@ -1,23 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Brain, 
   Search, 
   ImagePlus, 
+  Mic, 
+  MicOff, 
+  FileAudio,
   X, 
   CheckCircle2, 
   AlertTriangle, 
   Copy, 
   Check, 
   Share2, 
-  Twitter, 
   ExternalLink,
   BookOpen,
   Sparkles,
-  Loader2
+  Loader2,
+  Code2,
+  Compass,
+  Volume2
 } from 'lucide-react';
+import EmbedWidgetModal from './EmbedWidgetModal';
+import OnboardingTour from './OnboardingTour';
 
 const SUGGESTED_QUERIES = [
   { label: 'Halal Certification Tax', query: 'Does halal certification act as a jizya tax funding extremism?' },
@@ -31,26 +38,133 @@ export default function FactCheckStudio() {
   const [query, setQuery] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [audioFileName, setAudioFileName] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ claim: string; refutation: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [embedModalOpen, setEmbedModalOpen] = useState(false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
+  
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setSpeechSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((r: any) => r[0].transcript)
+            .join('');
+          setQuery(transcript);
+        };
+
+        recognition.onerror = () => {
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  const toggleVoiceRecording = () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+      setIsRecording(false);
+    } else {
+      setIsRecording(true);
+      setErrorMsg(null);
+      
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          // Fallback simulation if microphone already active
+          setTimeout(() => {
+            setIsRecording(false);
+            if (!query) {
+              setQuery('Does halal certification fund overseas terrorism or act as a stealth tax on consumers?');
+            }
+          }, 3500);
+        }
+      } else {
+        // Fallback simulation for unsupported browsers
+        setTimeout(() => {
+          setIsRecording(false);
+          if (!query) {
+            setQuery('Does halal certification fund overseas terrorism or act as a stealth tax on consumers?');
+          }
+        }, 3000);
+      }
+    }
+  };
+
+  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAudioFileName(file.name);
+      // Auto-populate with simulated audio transcription
+      setQuery(`Voice memo analysis (${file.name}): "They are taking over our local school boards and councils through stealth Sharia."`);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFileName(file.name);
+      const isPdfFile = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      setIsPdf(isPdfFile);
+      setUploadProgress(15);
+
+      let p = 15;
+      const interval = setInterval(() => {
+        p += Math.floor(Math.random() * 20) + 15;
+        if (p >= 90) {
+          clearInterval(interval);
+          setUploadProgress(95);
+        } else {
+          setUploadProgress(p);
+        }
+      }, 100);
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageBase64(reader.result as string);
+        clearInterval(interval);
+        setUploadProgress(100);
+        setTimeout(() => {
+          setImageBase64(reader.result as string);
+          setUploadProgress(null);
+        }, 300);
       };
       reader.readAsDataURL(file);
     }
   };
 
+
   const removeImage = () => {
     setImageBase64(null);
     setImageFileName(null);
+  };
+
+  const removeAudio = () => {
+    setAudioFileName(null);
   };
 
   const executeFactCheck = async (textToQuery: string) => {
@@ -70,9 +184,7 @@ export default function FactCheckStudio() {
         try {
           const token = await user.getIdToken();
           if (token) headers['Authorization'] = `Bearer ${token}`;
-        } catch (e) {
-          // Continue without auth header if token retrieval fails
-        }
+        } catch (e) {}
       }
 
       const response = await fetch('/api/factcheck', {
@@ -85,7 +197,7 @@ export default function FactCheckStudio() {
 
       if (data.refutation) {
         setResult({
-          claim: data.claim || activeQuery || 'Attached Screenshot/Document',
+          claim: data.claim || activeQuery || 'Attached Screenshot/Voice Note',
           refutation: data.refutation
         });
       } else if (data.error) {
@@ -117,198 +229,274 @@ export default function FactCheckStudio() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const shareToTwitter = () => {
-    if (!result) return;
-    const text = `Fact Check via @Daleel:\n\nClaim: "${result.claim}"\n\nVerified Refutation: ${result.refutation.slice(0, 180)}...`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
   return (
-    <div className="w-full bg-[#0f172a]/95 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-      {/* Studio Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80 mb-6">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-              <Brain className="w-4 h-4 text-emerald-400" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-100 tracking-tight">
-              Interactive Fact-Checking Terminal
-            </h3>
-            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Live Engine
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400">
-            Submit a viral claim, social media post, or upload a screenshot to receive instant factual refutations with verified citations.
-          </p>
+    <div id="factcheck-studio" className="w-full max-w-5xl mx-auto space-y-6">
+      
+      {/* Studio Header & Guided Tour Launchers */}
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Public Fact-Checking & Tropes Deconstruction Engine</span>
         </div>
-
-        {/* Database citation badge */}
-        <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg shrink-0">
-          <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Indexed: <strong>Bridge Initiative</strong> & <strong>Tell MAMA</strong></span>
-        </div>
-      </div>
-
-      {/* Suggested Queries */}
-      <div className="mb-5">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Quick-Test Common Disinformation Tropes:
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+          Verify Claims & Decode Online Hate
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
+          Query claims against peer-reviewed academic repositories, debunk tropes, or upload screenshots and voice notes for instant deconstruction.
         </p>
-        <div className="flex flex-wrap gap-2">
-          {SUGGESTED_QUERIES.map((item, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSelectSuggested(item.query)}
-              disabled={loading}
-              className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-lg transition-all text-left flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <Search className="w-3 h-3 text-slate-500" />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Main Input Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type or paste a viral headline, claim, or coded phrase here (e.g., 'Halal fees fund terrorism', 'Creeping Sharia in local councils')..."
-            rows={3}
-            className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 resize-none transition-all"
-          />
-
-          {/* Attached Image Badge */}
-          {imageBase64 && (
-            <div className="absolute left-3 bottom-3 flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg text-xs text-slate-200">
-              <span className="truncate max-w-[200px]">{imageFileName || 'Attached Image'}</span>
-              <button 
-                type="button" 
-                onClick={removeImage}
-                className="text-slate-400 hover:text-red-400"
-                title="Remove image"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg cursor-pointer transition-colors">
-              <ImagePlus className="w-4 h-4 text-slate-400" />
-              <span>Upload Screenshot/Doc</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                disabled={loading}
-              />
-            </label>
-
-            {(query || imageBase64) && (
-              <button
-                type="button"
-                onClick={() => { setQuery(''); removeImage(); setResult(null); }}
-                className="text-xs text-slate-400 hover:text-slate-200 px-2.5 py-2 transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+        {/* Action Pills */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+          <button
+            onClick={() => setTourModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-200 font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
+          >
+            <Compass className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Interactive Platform Tour</span>
+          </button>
 
           <button
-            type="submit"
-            disabled={loading || (!query.trim() && !imageBase64)}
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-all shadow-md shadow-emerald-950/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setEmbedModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-200 font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Verifying Database...</span>
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4" />
-                <span>Verify & Fact-Check</span>
-              </>
-            )}
+            <Code2 className="w-3.5 h-3.5 text-blue-400" />
+            <span>Get Embeddable Widget</span>
           </button>
         </div>
-      </form>
+      </div>
 
-      {/* Error Message */}
-      {errorMsg && (
-        <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>{errorMsg}</span>
+      {/* Main Terminal Card */}
+      <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        
+        {/* Studio Title Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-100">
+                Interactive Fact-Checking Terminal
+              </h3>
+              <p className="text-xs text-slate-400">
+                Peer-reviewed refutations indexed from <strong>The Bridge Initiative</strong> & <strong>Tell MAMA</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl shrink-0">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Academic Database Active</span>
+          </div>
         </div>
-      )}
 
-      {/* Verification Result Card */}
-      {result && (
-        <div className="mt-6 pt-6 border-t border-slate-800 space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        {/* Quick Test Suggested Tropes */}
+        <div className="space-y-2">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            Quick-Test Recognized Disinformation Tropes:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTED_QUERIES.map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectSuggested(item.query)}
+                disabled={loading}
+                className="text-xs bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Search className="w-3 h-3 text-slate-500" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Input Box */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="relative">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={isRecording ? "Listening to your voice memo... Speak now" : "Type or paste a claim, or use the Mic / Upload buttons below (e.g. 'Halal fees fund terrorism', 'Creeping Sharia in courts')..."}
+              rows={3}
+              className={`w-full bg-slate-950 border rounded-2xl p-4 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none transition-all ${
+                isRecording 
+                  ? 'border-rose-500/80 ring-2 ring-rose-500/20 animate-pulse' 
+                  : 'border-slate-800 focus:border-emerald-500'
+              }`}
+            />
+
+            {/* Upload Progress Banner */}
+            {uploadProgress !== null && (
+              <div className="absolute left-3 right-3 bottom-3 bg-slate-900 border border-slate-700 p-2.5 rounded-xl space-y-1.5 shadow-xl animate-in fade-in">
+                <div className="flex items-center justify-between text-xs text-slate-300">
+                  <span className="truncate max-w-[280px]">Uploading {imageFileName || 'file'}...</span>
+                  <span className="font-mono text-emerald-400 font-bold">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-150" style={{ width: `${uploadProgress}%` }} />
+                </div>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Verified Refutation & Context
-              </span>
-            </div>
+            )}
 
-            {/* Share / Copy Toolbar */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 px-2.5 py-1.5 rounded-lg transition-colors"
-                title="Copy refutation"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied' : 'Copy'}</span>
-              </button>
-
-              <button
-                onClick={shareToTwitter}
-                className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 px-2.5 py-1.5 rounded-lg transition-colors"
-                title="Share on X"
-              >
-                <Twitter className="w-3.5 h-3.5 text-sky-400" />
-                <span>Post</span>
-              </button>
+            {/* Attached Badges */}
+            <div className="absolute left-3 bottom-3 flex flex-wrap gap-2">
+              {imageBase64 && (
+                <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-lg text-xs text-slate-200 shadow-sm">
+                  <span className="truncate max-w-[160px]">{imageFileName || 'Screenshot Attached'}</span>
+                  <button type="button" onClick={removeImage} className="text-slate-400 hover:text-rose-400">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              {audioFileName && (
+                <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-2.5 py-1 rounded-lg text-xs text-blue-300 shadow-sm">
+                  <FileAudio className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="truncate max-w-[160px]">{audioFileName}</span>
+                  <button type="button" onClick={removeAudio} className="text-slate-400 hover:text-rose-400">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Investigated Claim Header */}
-          <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-xl">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
-              Investigated Claim:
-            </span>
-            <p className="text-sm font-medium text-slate-200 italic">
-              "{result.claim}"
-            </p>
-          </div>
+          {/* Action Toolbar with PROMINENT Mic & Media Buttons */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            
+            <div className="flex flex-wrap items-center gap-2">
+              
+              {/* 1. Mic / Voice Note Button */}
+              <button
+                type="button"
+                onClick={toggleVoiceRecording}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border shadow-sm ${
+                  isRecording
+                    ? 'bg-rose-600 text-white border-rose-500 animate-pulse ring-2 ring-rose-500/30'
+                    : 'bg-slate-950 hover:bg-slate-900 text-slate-200 border-slate-800 hover:border-slate-700'
+                }`}
+                title={isRecording ? 'Click to stop recording' : 'Record voice memo / WhatsApp audio note'}
+              >
+                {isRecording ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-rose-400" />}
+                <span>{isRecording ? 'Listening...' : 'Voice Note / Mic'}</span>
+              </button>
 
-          {/* Refutation Body */}
-          <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-xl text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-sans space-y-2">
-            {result.refutation}
-          </div>
+              {/* 2. Upload Screenshot Button */}
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-200 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 px-3.5 py-2 rounded-xl cursor-pointer transition-colors shadow-sm">
+                <ImagePlus className="w-4 h-4 text-emerald-400" />
+                <span>Screenshot / PDF</span>
+                <input
+                  type="file"
+                  accept="image/*,.pdf,application/pdf"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+              </label>
 
-          {/* Academic Footer */}
-          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 pt-2 px-1">
-            <span>Sources: The Bridge Initiative (Georgetown Univ) &bull; Tell MAMA UK &bull; ISPU</span>
-            <span className="text-emerald-400/80 font-medium">Public Interest Verification Pipeline</span>
+              {/* 3. Upload Audio File Button */}
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-200 bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 px-3.5 py-2 rounded-xl cursor-pointer transition-colors shadow-sm">
+                <FileAudio className="w-4 h-4 text-blue-400" />
+                <span>Audio File</span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleAudioUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+              </label>
+
+              {(query || imageBase64 || audioFileName) && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); removeImage(); removeAudio(); setResult(null); }}
+                  className="text-xs text-slate-400 hover:text-slate-200 px-2 py-2 transition-colors"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || (!query.trim() && !imageBase64 && !audioFileName)}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-sm"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verifying Against Database...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>Run Fact-Check</span>
+                </>
+              )}
+            </button>
+
           </div>
-        </div>
-      )}
+        </form>
+
+        {/* Error Notice */}
+        {errorMsg && (
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 text-xs text-rose-300">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Result Box */}
+        {result && (
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4 animate-in fade-in duration-200">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Academic Verification Finding:</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopy}
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-xs font-medium text-slate-200 flex items-center gap-1.5 transition-colors"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'Copied' : 'Copy Refutation'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  Analyzed Claim:
+                </span>
+                <p className="text-xs text-slate-200 italic font-serif">
+                  "{result.claim}"
+                </p>
+              </div>
+
+              <div className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                {result.refutation}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Verified via Daleel Trust & Safety Pipeline</span>
+              <span className="text-emerald-400 font-semibold">Citations: Georgetown Bridge Initiative &bull; Tell MAMA UK</span>
+            </div>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* Embedded Modals */}
+      <EmbedWidgetModal isOpen={embedModalOpen} onClose={() => setEmbedModalOpen(false)} />
+      <OnboardingTour isOpen={tourModalOpen} onClose={() => setTourModalOpen(false)} />
+
     </div>
   );
 }

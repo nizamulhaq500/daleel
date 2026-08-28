@@ -74,7 +74,7 @@ export default function ProfileCompletionModal() {
 
         
         {role === 'official' && <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>}
-        {role === 'journalist' && <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>}
+        {role === 'journalist' && <div className="absolute top-0 left-0 w-full h-1 bg-[#c26e27]"></div>}
         {role === 'reporter' && <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>}
 
         <div className="text-center mb-8">
@@ -83,7 +83,7 @@ export default function ProfileCompletionModal() {
               <Lock className="w-8 h-8 text-amber-500" />
             </div>
           ) : role === 'journalist' ? (
-            <div className="bg-blue-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="bg-[#c26e27]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileSignature className="w-8 h-8 text-blue-500" />
             </div>
           ) : (
@@ -157,7 +157,7 @@ export default function ProfileCompletionModal() {
                   onClick={() => setJournalistType('journalist')}
                   className={`py-2 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-colors ${
                     journalistType === 'journalist' 
-                      ? 'bg-blue-600/20 border-blue-500 text-blue-400' 
+                      ? 'bg-[#c26e27]/20 border-[#c26e27] text-[#c26e27]' 
                       : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                   }`}
                 >
@@ -169,7 +169,7 @@ export default function ProfileCompletionModal() {
                   onClick={() => setJournalistType('creator')}
                   className={`py-2 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-colors ${
                     journalistType === 'creator' 
-                      ? 'bg-blue-600/20 border-blue-500 text-blue-400' 
+                      ? 'bg-[#c26e27]/20 border-[#c26e27] text-[#c26e27]' 
                       : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                   }`}
                 >
@@ -220,7 +220,7 @@ export default function ProfileCompletionModal() {
               role === 'official'
                 ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-500/20'
                 : role === 'journalist'
-                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                ? 'bg-[#c26e27] hover:bg-[#a05417] text-white shadow-lg shadow-amber-900/20'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
             }`}
           >

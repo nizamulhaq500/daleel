@@ -1,27 +1,76 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-html, body {
-  background-color: #090d16;
-  color: #f8fafc;
-}
 
+/* ==========================================================================
+   DALEEL UNIVERSAL DESIGN SYSTEM & DUAL-THEME ENGINE
+   1. Desert Sand (Default Light Mode): Beach Linen, Sandstone, Terracotta Amber
+   2. Greenish Night (Dark Mode): Deep Obsidian Slate, Emerald Green
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS VARIABLES & TOKENS
+   -------------------------------------------------------------------------- */
 :root {
-  --bg-primary: #090d16;
-  --bg-secondary: #0f172a;
-  --bg-surface: #141f36;
-  --border-subtle: #1e293b;
-  --border-strong: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-emerald: #10b981;
-  --accent-emerald-hover: #059669;
+  /* Default: Desert Sand Light */
+  --bg-base: #fcf8f2;
+  --bg-canvas: #fbf5eb;
+  --bg-card: #ffffff;
+  --bg-elevated: #f9f0e5;
+  --bg-accent-soft: #ede0cf;
+  --border-subtle: #e6dacf;
+  --border-medium: #dfd2bf;
+  --text-heading: #1e140d;
+  --text-body: #382619;
+  --text-muted: #6b5340;
+  --text-dim: #8c7662;
+  --brand-primary: #c26e27;
+  --brand-primary-hover: #a05417;
+  --brand-arabic: #b45309;
+  --header-bg: #9aa6a1;
+  --header-border: #84928c;
 }
 
-body {
-  background-color: #090d16;
-  color: #f8fafc;
+html.dark {
+  /* Greenish Night Dark */
+  --bg-base: #090d16;
+  --bg-canvas: #0c1220;
+  --bg-card: #0f172a;
+  --bg-elevated: #141f36;
+  --bg-accent-soft: #1e293b;
+  --border-subtle: #1e293b;
+  --border-medium: #334155;
+  --text-heading: #f8fafc;
+  --text-body: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --brand-primary: #10b981;
+  --brand-primary-hover: #059669;
+  --brand-arabic: #34d399;
+  --header-bg: #090d16;
+  --header-border: #1e293b;
+}
+
+/* --------------------------------------------------------------------------
+   GLOBAL BASE & BODY
+   -------------------------------------------------------------------------- */
+html, body {
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+html.dark, html.dark body {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+}
+
+html:not(.dark), html:not(.dark) body {
+  background-color: #9aa6a1 !important;
+  color: #1e140d !important;
+}
+html:not(.dark) main {
+  background-color: #fcf8f2 !important;
 }
 
 /* Custom subtle scrollbar */
@@ -30,20 +79,25 @@ body {
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+html.dark ::-webkit-scrollbar-track {
   background: #090d16;
 }
-
-::-webkit-scrollbar-thumb {
+html.dark ::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #fcf8f2;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #dfd2bf;
+  border-radius: 9999px;
 }
 
-/* Photo Wall background subtle layer */
+/* --------------------------------------------------------------------------
+   PHOTO WALL BACKGROUND COMPONENT
+   -------------------------------------------------------------------------- */
 .app-shell {
   position: relative;
   isolation: isolate;
@@ -56,7 +110,15 @@ body {
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+html.dark .photo-wall {
   background: #090d16;
+}
+
+html:not(.dark) .photo-wall {
+  background: #fcf8f2;
 }
 
 .app-content {
@@ -67,16 +129,376 @@ body {
 .photo-wall__blurred {
   position: absolute;
   inset: 0;
-  opacity: 0.10;
+  opacity: 0.08;
   filter: grayscale(1) blur(12px);
-}
-
-.photo-wall__sharp {
-  display: none;
 }
 
 .photo-wall__veil {
   position: absolute;
   inset: 0;
+  transition: background 0.3s ease;
+}
+
+html.dark .photo-wall__veil {
   background: radial-gradient(circle at 50% 20%, rgba(15, 23, 42, 0.4) 0%, rgba(9, 13, 22, 0.95) 75%);
+}
+
+html:not(.dark) .photo-wall__veil {
+  background: radial-gradient(circle at 50% 15%, rgba(245, 236, 225, 0.7) 0%, rgba(252, 248, 242, 0.98) 80%);
+}
+
+/* --------------------------------------------------------------------------
+   HEADER & NAVBAR COMPONENT STYLES
+   -------------------------------------------------------------------------- */
+.app-header, .app-navbar {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html.dark .app-header, html.dark .app-navbar {
+  background-color: rgba(9, 13, 22, 0.95) !important;
+  border-bottom: 1px solid #1e293b !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+html.dark .desert-brand-text {
+  color: #f8fafc !important;
+}
+html.dark .desert-brand-arabic {
+  color: #34d399 !important;
+}
+html.dark .desert-sub-text {
+  color: #94a3b8 !important;
+}
+html.dark .desert-logo-box {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .desert-logo-icon {
+  color: #34d399 !important;
+}
+
+html:not(.dark) .app-header, html:not(.dark) .app-navbar {
+  background-color: #9aa6a1 !important;
+  border-bottom: 1px solid #84928c !important;
+  box-shadow: 0 1px 3px 0 rgba(20, 30, 25, 0.08);
+}
+
+html:not(.dark) .desert-brand-text {
+  color: #111a16 !important;
+}
+html:not(.dark) .desert-brand-arabic {
+  color: #1b3329 !important;
+}
+html:not(.dark) .desert-sub-text {
+  color: #24352d !important;
+}
+html:not(.dark) .desert-logo-box {
+  background-color: #889691 !important;
+  border-color: #6e7c77 !important;
+}
+html:not(.dark) .desert-logo-icon {
+  color: #111a16 !important;
+}
+
+/* --------------------------------------------------------------------------
+   SIGNED IN BANNER COMPONENT
+   -------------------------------------------------------------------------- */
+.app-signed-in-banner {
+  transition: background-color 0.2s ease;
+}
+
+html.dark .app-signed-in-banner {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+  border-bottom: 1px solid rgba(6, 95, 70, 0.4) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .app-signed-in-banner strong, html.dark .app-signed-in-banner span {
+  color: #6ee7b7 !important;
+}
+html.dark .app-signed-in-banner a, html.dark .app-signed-in-banner button {
+  color: #a7f3d0 !important;
+}
+html.dark .app-signed-in-banner svg {
+  color: #34d399 !important;
+}
+
+html:not(.dark) .app-signed-in-banner {
+  background-color: #9aa6a1 !important;
+  border-bottom: 1px solid #84928c !important;
+  color: #111a16 !important;
+}
+html:not(.dark) .app-signed-in-banner strong, html:not(.dark) .app-signed-in-banner span {
+  color: #111a16 !important;
+}
+html:not(.dark) .app-signed-in-banner a, html:not(.dark) .app-signed-in-banner button {
+  color: #111a16 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .app-signed-in-banner a:hover, html:not(.dark) .app-signed-in-banner button:hover {
+  color: #1e3a2b !important;
+}
+html:not(.dark) .app-signed-in-banner svg {
+  color: #111a16 !important;
+}
+
+/* --------------------------------------------------------------------------
+   DESERT SAND LIGHT MODE CLASS OVERRIDES
+   -------------------------------------------------------------------------- */
+html:not(.dark) {
+  /* Surfaces & Containers */
+  & .bg-\[\#090d16\], & .bg-\[\#090d16\]\/90, & .bg-\[\#090d16\]\/95 {
+    background-color: #fcf8f2 !important;
+  }
+  & .bg-\[\#060910\] {
+    background-color: #f8f0e5 !important;
+  }
+  & .bg-\[\#0f172a\], & .bg-\[\#0f172a\]\/95, & .bg-\[\#0f172a\]\/90 {
+    background-color: #fbf5eb !important;
+  }
+  & .bg-\[\#0b101b\] {
+    background-color: #f2e6d8 !important;
+  }
+  & .bg-\[\#020617\], & .bg-\[\#020617\]\/50, & .bg-\[\#020617\]\/70 {
+    background-color: #ede1d2 !important;
+  }
+  & .bg-slate-950, & .bg-slate-950\/50, & .bg-slate-950\/80 {
+    background-color: #ffffff !important;
+  }
+  & .bg-slate-900, & .bg-slate-900\/80, & .bg-slate-900\/90, & .bg-slate-900\/95 {
+    background-color: #ffffff !important;
+  }
+  & .bg-slate-850 {
+    background-color: #faf6f0 !important;
+  }
+  & .bg-slate-800, & .bg-slate-800\/80, & .bg-slate-800\/50 {
+    background-color: #ede1d2 !important;
+  }
+  & .hover\:bg-slate-900:hover {
+    background-color: #faf6f0 !important;
+  }
+  & .hover\:bg-slate-800:hover {
+    background-color: #e4d5c3 !important;
+  }
+  & .hover\:bg-slate-700:hover {
+    background-color: #dfd0bd !important;
+  }
+
+  /* Borders */
+  & .border-slate-800, & .border-slate-800\/80 {
+    border-color: #e6dacf !important;
+  }
+  & .border-slate-700, & .border-slate-700\/80 {
+    border-color: #dfd2bf !important;
+  }
+  & .border-slate-900 {
+    border-color: #e8dccb !important;
+  }
+
+  /* Typography */
+  & .text-slate-100, & .text-white {
+    color: #1e140d !important;
+  }
+  & .text-slate-200 {
+    color: #382619 !important;
+  }
+  & .text-slate-300 {
+    color: #523d2e !important;
+  }
+  & .text-slate-400 {
+    color: #705845 !important;
+  }
+  & .text-slate-500 {
+    color: #8c7662 !important;
+  }
+
+  /* Form Elements */
+  & input, & textarea, & select {
+    color: #1e140d !important;
+    background-color: #ffffff !important;
+    border-color: #dfd2bf !important;
+  }
+  & input::placeholder, & textarea::placeholder {
+    color: #9c8571 !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   GREENISH NIGHT DARK MODE CLASS REINFORCEMENTS
+   -------------------------------------------------------------------------- */
+html.dark {
+  & .bg-slate-950 {
+    background-color: #020617 !important;
+  }
+  & .bg-slate-900 {
+    background-color: #0f172a !important;
+  }
+  & .bg-slate-800 {
+    background-color: #1e293b !important;
+  }
+  & .border-slate-800 {
+    border-color: #1e293b !important;
+  }
+  & .border-slate-700 {
+    border-color: #334155 !important;
+  }
+  & .text-slate-100 {
+    color: #f8fafc !important;
+  }
+  & .text-slate-200 {
+    color: #e2e8f0 !important;
+  }
+  & .text-slate-300 {
+    color: #cbd5e1 !important;
+  }
+  & .text-slate-400 {
+    color: #94a3b8 !important;
+  }
+  & .text-slate-500 {
+    color: #64748b !important;
+  }
+}
+
+/* Specific component helper */
+.platform-scorecard-container {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html:not(.dark) .platform-scorecard-container {
+  background-color: #fbf5eb !important;
+  border-color: #e6dacf !important;
+}
+
+html.dark .platform-scorecard-container {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+/* ==========================================================================
+   EXPLICIT SCORECARD DUAL-THEME STYLING RULES
+   ========================================================================== */
+html:not(.dark) .scorecard-container {
+  background-color: #f7efe4 !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .scorecard-card {
+  background-color: #fdfaf5 !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .scorecard-card-selected {
+  background-color: #ffffff !important;
+  border-color: #c26e27 !important;
+}
+html:not(.dark) .scorecard-box {
+  background-color: #ede2d3 !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .scorecard-text-title {
+  color: #1e140d !important;
+}
+html:not(.dark) .scorecard-text-sub {
+  color: #523d2e !important;
+}
+html:not(.dark) .scorecard-text-muted {
+  color: #705845 !important;
+}
+
+html.dark .scorecard-container {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+html.dark .scorecard-card {
+  background-color: #131b2e !important;
+  border-color: #1e293b !important;
+}
+html.dark .scorecard-card-selected {
+  background-color: #162035 !important;
+  border-color: #10b981 !important;
+}
+html.dark .scorecard-box {
+  background-color: #090d16 !important;
+  border-color: #1e293b !important;
+}
+html.dark .scorecard-text-title {
+  color: #f8fafc !important;
+}
+html.dark .scorecard-text-sub {
+  color: #cbd5e1 !important;
+}
+html.dark .scorecard-text-muted {
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   EXPLICIT FACTCHECK & DROPZONE DUAL-THEME STYLING RULES
+   ========================================================================== */
+html:not(.dark) .factcheck-window {
+  background-color: #ffffff !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .factcheck-header {
+  background-color: #f7efe4 !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .factcheck-body {
+  background-color: #fcf8f2 !important;
+}
+html:not(.dark) .factcheck-bot-bubble {
+  background-color: #ffffff !important;
+  border-color: #dfd2bf !important;
+  color: #1e140d !important;
+}
+html:not(.dark) .factcheck-footer {
+  background-color: #f7efe4 !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .factcheck-input {
+  background-color: #ffffff !important;
+  border-color: #dfd2bf !important;
+  color: #1e140d !important;
+}
+html:not(.dark) .evidence-dropzone {
+  background-color: #ffffff !important;
+  border-color: #dfd2bf !important;
+}
+html:not(.dark) .evidence-dropzone-text {
+  color: #1e140d !important;
+}
+html:not(.dark) .evidence-dropzone-sub {
+  color: #705845 !important;
+}
+
+html.dark .factcheck-window {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+html.dark .factcheck-header {
+  background-color: #131b2e !important;
+  border-color: #1e293b !important;
+}
+html.dark .factcheck-body {
+  background-color: #090d16 !important;
+}
+html.dark .factcheck-bot-bubble {
+  background-color: #131b2e !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+html.dark .factcheck-footer {
+  background-color: #131b2e !important;
+  border-color: #1e293b !important;
+}
+html.dark .factcheck-input {
+  background-color: #090d16 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+html.dark .evidence-dropzone {
+  background-color: #090d16 !important;
+  border-color: #334155 !important;
+}
+html.dark .evidence-dropzone-text {
+  color: #cbd5e1 !important;
+}
+html.dark .evidence-dropzone-sub {
+  color: #94a3b8 !important;
 }

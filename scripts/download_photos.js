@@ -30,14 +30,12 @@ function download(url, dest) {
 }
 
 async function run() {
-  for (const item of urls) {
+  const promises = urls.map(item => {
     console.log('Downloading ' + item.name);
-    try {
-      await download(item.url, 'public/assets/' + item.name);
-      console.log('Success: ' + item.name);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+    return download(item.url, 'public/assets/' + item.name)
+      .then(() => console.log('Success: ' + item.name))
+      .catch(e => console.error('Failed ' + item.name, e.message));
+  });
+  await Promise.all(promises);
 }
 run();

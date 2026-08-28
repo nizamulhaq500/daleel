@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, EyeOff, Shield } from 'lucide-react';
 
 interface Crime {
   id: string;
@@ -138,7 +138,18 @@ export default function CrimesTimeline() {
           </button>
         </div>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <button
+            onClick={() => setAcceptedWarning(false)}
+            className="text-xs text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-3.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+          >
+            <EyeOff className="w-3.5 h-3.5 text-rose-400" />
+            <span>Hide Sensitive Content / Re-enable Blur</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {crimes.map((crime) => (
           <div 
             key={crime.id}
@@ -162,6 +173,7 @@ export default function CrimesTimeline() {
             </div>
           </div>
         ))}
+      </div>
       </div>
       )}
 

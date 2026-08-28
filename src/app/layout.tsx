@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProfileCompletionModal from "@/components/ProfileCompletionModal";
 import FactCheckBot from "@/components/FactCheckBot";
 import DynamicBackground from "@/components/DynamicBackground";
+import CommandPalette from "@/components/CommandPalette";
 
 export const metadata: Metadata = {
   title: "Daleel - Trust & Safety Pipeline",
@@ -24,8 +25,12 @@ export default function RootLayout({
             (function() {
               try {
                 var theme = localStorage.getItem('theme');
-                if (theme === 'light' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-                  document.documentElement.classList.add('light-mode');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('desert-mode', 'light-mode');
+                } else {
+                  document.documentElement.classList.add('desert-mode', 'light-mode');
+                  document.documentElement.classList.remove('dark');
                 }
               } catch (e) {}
             })();
@@ -45,6 +50,7 @@ export default function RootLayout({
             <DynamicBackground />
             <div className="app-content flex-1 flex flex-col">
               <ProfileCompletionModal />
+              <CommandPalette />
               {children}
             </div>
           </div>

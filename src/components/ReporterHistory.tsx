@@ -79,7 +79,7 @@ export default function ReporterHistory() {
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-4">
                 <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-sm flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span className="w-2 h-2 rounded-full bg-[#c26e27]"></span>
                   Platform: <span className="font-semibold text-white">{selectedReport.sourcePlatform || 'Not Specified'}</span>
                 </div>
                 <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-sm flex items-center gap-2">
@@ -102,7 +102,7 @@ export default function ReporterHistory() {
 
               <div>
                 <h4 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">AI Analysis</h4>
-                <div className="bg-blue-950/20 border border-blue-900/50 rounded-lg p-4 space-y-4">
+                <div className="bg-[#c26e27]/10 border border-[#c26e27]/20 rounded-lg p-4 space-y-4">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className={`w-5 h-5 ${selectedReport.severity === 'Critical' ? 'text-red-500' : selectedReport.severity === 'High' ? 'text-orange-500' : 'text-amber-500'}`} />
                     <span className="text-white font-medium">Severity: {selectedReport.severity}</span>

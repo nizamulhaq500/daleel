@@ -376,7 +376,7 @@ export default function ProfileSettingsModal({
                           onClick={() => setJournalistType('journalist')}
                           className={`py-3 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-colors ${
                             journalistType === 'journalist' 
-                              ? 'bg-blue-600/20 border-blue-500 text-blue-400' 
+                              ? 'bg-[#c26e27]/20 border-[#c26e27] text-[#c26e27]' 
                               : 'bg-slate-950 border-slate-700 text-slate-500'
                           }`}
                         >
@@ -387,7 +387,7 @@ export default function ProfileSettingsModal({
                           onClick={() => setJournalistType('creator')}
                           className={`py-3 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-colors ${
                             journalistType === 'creator' 
-                              ? 'bg-blue-600/20 border-blue-500 text-blue-400' 
+                              ? 'bg-[#c26e27]/20 border-[#c26e27] text-[#c26e27]' 
                               : 'bg-slate-950 border-slate-700 text-slate-500'
                           }`}
                         >
@@ -436,7 +436,7 @@ export default function ProfileSettingsModal({
                     className={`font-bold py-3 px-8 rounded-xl transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 ${
                       role === 'official' 
                         ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-500/20' 
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+                        : 'bg-[#c26e27] hover:bg-[#a05417] text-white shadow-amber-900/20'
                     }`}
                   >
                     {loading ? 'Saving...' : 'Save Credentials'}
@@ -468,15 +468,22 @@ export default function ProfileSettingsModal({
                       <select 
                         value={theme} 
                         onChange={(e) => {
-                          setTheme(e.target.value);
-                          localStorage.setItem('theme', e.target.value);
-                          if (e.target.value === 'light') document.documentElement.classList.add('light-mode');
-                          else document.documentElement.classList.remove('light-mode');
+                          const val = e.target.value;
+                          setTheme(val);
+                          localStorage.setItem('theme', val);
+                          if (val === 'desert' || val === 'light') {
+                            document.documentElement.classList.add('desert-mode', 'light-mode');
+                            document.documentElement.classList.remove('dark');
+                          } else {
+                            document.documentElement.classList.add('dark');
+                            document.documentElement.classList.remove('desert-mode', 'light-mode');
+                          }
+                          window.dispatchEvent(new Event('themechange'));
                         }} 
                         className="bg-[#020617]/70 border border-white/10 text-white rounded-xl px-4 py-3"
                       >
-                        <option value="dark">Greenish Night (Dark)</option>
-                        <option value="light">Desert (Light)</option>
+                        <option value="dark">🌙 Greenish Night (Dark Mode)</option>
+                        <option value="desert">🏖️ Desert Sand (Warm Beach Light Mode)</option>
                       </select>
                     </div>
 
@@ -511,7 +518,7 @@ export default function ProfileSettingsModal({
                 <div className="space-y-4">
                   <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex gap-4">
-                      <div className="bg-blue-500/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                      <div className="bg-[#c26e27]/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
                         <Lock className="w-6 h-6 text-blue-500" />
                       </div>
                       <div>
@@ -553,7 +560,7 @@ export default function ProfileSettingsModal({
                 <div className="space-y-4">
                   <div className="bg-[#020617]/50 border border-white/5 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex gap-4">
-                      <div className="bg-blue-500/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                      <div className="bg-[#c26e27]/10 p-3 rounded-xl flex-shrink-0 h-12 w-12 flex items-center justify-center">
                         <Download className="w-6 h-6 text-blue-500" />
                       </div>
                       <div>

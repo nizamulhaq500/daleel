@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, CheckCircle2, Brain, Loader2, ImagePlus, Twitter, Share2, Maximize2, Minimize2, Copy, Check } from 'lucide-react';
+import { X, Send, CheckCircle2, Brain, Loader2, ImagePlus, FileText, Twitter, Share2, Maximize2, Minimize2, Copy, Check } from 'lucide-react';
 
 export default function FactCheckBot() {
   const { user } = useAuth();
@@ -10,6 +10,9 @@ export default function FactCheckBot() {
   const [query, setQuery] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
   const [messages, setMessages] = useState<Array<{role: 'user' | 'bot', content: string, status?: 'verifying' | 'done', image?: string, claim?: string}>>([
     {
       role: 'bot',
@@ -37,18 +40,40 @@ export default function FactCheckBot() {
     return () => window.removeEventListener('open-fact-check-bot', handleOpenBot);
   }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsUploading(true);
+      setUploadProgress(10);
+      setAttachedFileName(file.name);
+      const isPdfFile = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      setIsPdf(isPdfFile);
+
+      let p = 15;
+      const interval = setInterval(() => {
+        p += Math.floor(Math.random() * 25) + 15;
+        if (p >= 90) {
+          clearInterval(interval);
+          setUploadProgress(95);
+        } else {
+          setUploadProgress(p);
+        }
+      }, 120);
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageBase64(reader.result as string);
-        setIsUploading(false);
+        clearInterval(interval);
+        setUploadProgress(100);
+        setTimeout(() => {
+          setImageBase64(reader.result as string);
+          setIsUploading(false);
+          setUploadProgress(null);
+        }, 300);
       };
       reader.readAsDataURL(file);
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,26 +142,26 @@ export default function FactCheckBot() {
       {/* Trigger Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 rounded-lg transition-all ${isOpen ? 'border-emerald-500 bg-emerald-500/10' : ''}`}
+        className={`flex items-center gap-2 px-4 py-2 bg-[#ede4d8] hover:bg-[#e4d8c9] dark:bg-[#0f172a] dark:hover:bg-slate-800 border border-[#dfd2bf] dark:border-slate-700 hover:border-[#c26e27] dark:hover:border-emerald-500/50 rounded-xl shadow-sm transition-all cursor-pointer ${isOpen ? 'border-[#c26e27] dark:border-emerald-500 ring-2 ring-[#c26e27]/20 dark:ring-emerald-500/20' : ''}`}
         title="Open Fact-Check Engine"
       >
-        <Brain className={`w-4 h-4 ${isOpen ? 'text-emerald-400' : 'text-slate-400'}`} />
-        <span className="text-xs font-semibold text-slate-200 hidden sm:block">Fact-Check Bot</span>
+        <Brain className={`w-4 h-4 ${isOpen ? 'text-[#c26e27] dark:text-emerald-400' : 'text-[#8c5324] dark:text-emerald-400'}`} />
+        <span className="text-xs font-bold text-[#1e140d] dark:text-slate-200 hidden sm:block">Fact-Check Bot</span>
       </button>
 
       {/* Floating Modal Window */}
       <div 
-        className={`${windowClasses} bg-[#0f172a] border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}
+        className={`${windowClasses} factcheck-window border rounded-2xl shadow-2xl flex flex-col transition-all duration-200 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/90 rounded-t-2xl shrink-0">
+        <div className="flex items-center justify-between p-4 border-b factcheck-header rounded-t-2xl shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="bg-emerald-500/10 p-1.5 rounded-lg border border-emerald-500/30">
               <Brain className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-slate-100 font-bold text-sm">Daleel Fact-Check Engine</h3>
-              <p className="text-[10px] text-slate-400">Verified Disinformation Refutations</p>
+              <h3 className="font-bold text-sm text-[#1e140d] dark:text-slate-100">Daleel Fact-Check Engine</h3>
+              <p className="text-[10px] text-[#705845] dark:text-slate-400 font-medium">Verified Disinformation Refutations</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -158,11 +183,11 @@ export default function FactCheckBot() {
         </div>
 
         {/* Chat History Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#090d16]/80 text-sm">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 factcheck-body text-sm">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'bot' && (
-                <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-[#ede2d3] dark:bg-slate-800 border border-[#dfd2bf] dark:border-slate-700 flex items-center justify-center shrink-0 mt-0.5">
                   <Brain className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
               )}
@@ -170,7 +195,7 @@ export default function FactCheckBot() {
               <div className={`max-w-[85%] rounded-xl p-3.5 ${
                 msg.role === 'user' 
                   ? 'bg-emerald-600 text-white rounded-tr-none' 
-                  : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none space-y-2'
+                  : 'factcheck-bot-bubble border rounded-tl-none space-y-2 shadow-sm'
               }`}>
                 {msg.image && (
                   <div className="mb-2 rounded-lg overflow-hidden border border-slate-700 max-h-48">
@@ -215,14 +240,29 @@ export default function FactCheckBot() {
         </div>
 
         {/* Input Form Footer */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800 bg-slate-900/95 space-y-2">
-          {imageBase64 && (
-            <div className="flex items-center justify-between bg-slate-800 px-2.5 py-1 rounded-lg text-xs text-slate-200">
-              <span className="truncate max-w-[240px]">Attached image ready for analysis</span>
+        <form onSubmit={handleSubmit} className="p-3 border-t factcheck-footer space-y-2">
+          {isUploading && uploadProgress !== null && (
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1.5 animate-in fade-in">
+              <div className="flex items-center justify-between text-[11px] text-slate-300">
+                <span className="truncate max-w-[180px]">Uploading {attachedFileName}...</span>
+                <span className="font-mono text-emerald-400 font-bold">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full transition-all duration-150" style={{ width: `${uploadProgress}%` }} />
+              </div>
+            </div>
+          )}
+
+          {imageBase64 && !isUploading && (
+            <div className="flex items-center justify-between bg-slate-800 px-2.5 py-1.5 rounded-xl text-xs text-slate-200 border border-slate-700">
+              <div className="flex items-center gap-1.5 truncate max-w-[220px]">
+                {isPdf ? <FileText className="w-3.5 h-3.5 text-rose-400 shrink-0" /> : <ImagePlus className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                <span className="truncate">{attachedFileName || (isPdf ? 'Document Attached' : 'Image Attached')}</span>
+              </div>
               <button 
                 type="button" 
-                onClick={() => setImageBase64(null)}
-                className="text-slate-400 hover:text-red-400"
+                onClick={() => { setImageBase64(null); setAttachedFileName(null); }}
+                className="text-slate-400 hover:text-red-400 p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -230,12 +270,12 @@ export default function FactCheckBot() {
           )}
 
           <div className="flex items-center gap-2">
-            <label className="p-2 text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors shrink-0" title="Attach screenshot">
+            <label className="p-2 text-[#705845] dark:text-slate-400 hover:text-[#1e140d] dark:hover:text-slate-200 bg-[#ede2d3] dark:bg-slate-800 hover:bg-[#e4d5c3] dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors shrink-0" title="Attach screenshot or PDF document">
               <ImagePlus className="w-4 h-4" />
               <input 
                 type="file" 
-                accept="image/*" 
-                onChange={handleImageUpload} 
+                accept="image/*,.pdf,application/pdf" 
+                onChange={handleFileUpload} 
                 className="hidden" 
                 disabled={isTyping || isUploading}
               />
@@ -247,7 +287,7 @@ export default function FactCheckBot() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ask about a claim, trope, or rumor..."
               disabled={isTyping}
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              className="flex-1 factcheck-input border rounded-lg px-3.5 py-2 text-xs sm:text-sm placeholder-[#9c8571] dark:placeholder-slate-500 focus:outline-none focus:border-[#c26e27] dark:focus:border-emerald-500"
             />
 
             <button

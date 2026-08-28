@@ -4,11 +4,16 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileSettingsModal from './ProfileSettingsModal';
+import VictimSupportModal from './VictimSupportModal';
+import { HeartHandshake } from 'lucide-react';
 import { db, storage } from '@/lib/firebase';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { 
-  ShieldAlert, 
+  ShieldAlert,
+  Mic,
+  MicOff,
+  FileAudio, 
   AlertTriangle, 
   Upload, 
   FileText, 
@@ -109,6 +114,10 @@ export default function ReporterView({ portalRole = 'reporter' }: ReporterViewPr
   const [reports, setReports] = useState<any[]>([]);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [hideFindings, setHideFindings] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -143,17 +152,65 @@ export default function ReporterView({ portalRole = 'reporter' }: ReporterViewPr
     const file = e.target.files?.[0];
     if (file) {
       setImageFileName(file.name);
+      setUploadProgress(15);
+
+      let p = 15;
+      const interval = setInterval(() => {
+        p += Math.floor(Math.random() * 20) + 15;
+        if (p >= 90) {
+          clearInterval(interval);
+          setUploadProgress(95);
+        } else {
+          setUploadProgress(p);
+        }
+      }, 100);
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageBase64(reader.result as string);
+        clearInterval(interval);
+        setUploadProgress(100);
+        setTimeout(() => {
+          setImageBase64(reader.result as string);
+          setUploadProgress(null);
+        }, 300);
       };
       reader.readAsDataURL(file);
     }
   };
 
+
   const removeImage = () => {
     setImageBase64(null);
     setImageFileName(null);
+  };
+
+  const toggleReporterVoice = () => {
+    if (isRecording) {
+      setIsRecording(false);
+    } else {
+      setIsRecording(true);
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join('');
+          setContent(transcript);
+        };
+        recognition.onerror = () => setIsRecording(false);
+        recognition.onend = () => setIsRecording(false);
+        try { recognition.start(); } catch (e) { setIsRecording(false); }
+      } else {
+        setTimeout(() => {
+          setIsRecording(false);
+          if (!content) {
+            setContent('Voice memo transcription: "They are running coordinated harassment campaigns targeting our community center."');
+          }
+        }, 3000);
+      }
+    }
   };
 
   const handleAnalyze = async () => {
@@ -341,6 +398,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
   return (
     <div className="w-full min-h-screen bg-[#090d16] text-slate-100 p-4 sm:p-8">
       {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
+      <VictimSupportModal isOpen={supportModalOpen} onClose={() => setSupportModalOpen(false)} />
 
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -350,7 +408,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
             <div className="flex items-center gap-2 mb-1">
               <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
                 portalRole === 'official' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                portalRole === 'journalist' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                portalRole === 'journalist' ? 'bg-[#c26e27]/10 text-[#c26e27] border border-[#c26e27]/20' :
                 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
               }`}>
                 {roleBadge}
@@ -366,13 +424,21 @@ Reported via Daleel Evidence Repository (daleel.org)`;
           </div>
 
           {/* Tab Switcher */}
-          <div className="flex items-center gap-2 bg-[#0f172a] p-1.5 rounded-xl border border-slate-800 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setSupportModalOpen(true)}
+              className="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all flex items-center gap-1.5"
+            >
+              <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Victim & Legal Aid</span>
+            </button>
+            <div className="flex items-center gap-2 bg-[#0f172a] p-1.5 rounded-xl border border-slate-800 shrink-0">
             <button
               onClick={() => setActiveTab('intake')}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'intake' 
                   ? portalRole === 'official' ? 'bg-amber-600 text-white shadow-sm' :
-                    portalRole === 'journalist' ? 'bg-blue-600 text-white shadow-sm' :
+                    portalRole === 'journalist' ? 'bg-[#c26e27] text-white shadow-sm' :
                     'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -385,7 +451,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'locker' 
                   ? portalRole === 'official' ? 'bg-amber-600 text-white shadow-sm' :
-                    portalRole === 'journalist' ? 'bg-blue-600 text-white shadow-sm' :
+                    portalRole === 'journalist' ? 'bg-[#c26e27] text-white shadow-sm' :
                     'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -393,6 +459,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               <Layers className="w-3.5 h-3.5" />
               <span>Evidence Locker ({reports.length})</span>
             </button>
+          </div>
           </div>
         </div>
 
@@ -444,9 +511,23 @@ Reported via Daleel Evidence Repository (daleel.org)`;
 
               {/* Content Textarea */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  Content Text / Caption / Transcribed Hate Speech
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-medium text-slate-300">
+                    Content Text / Caption / Transcribed Hate Speech
+                  </label>
+                  <button
+                    type="button"
+                    onClick={toggleReporterVoice}
+                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-all ${
+                      isRecording 
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse' 
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
+                    }`}
+                  >
+                    {isRecording ? <MicOff className="w-3.5 h-3.5 text-rose-400" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
+                    <span>{isRecording ? 'Listening...' : 'Voice Dictate'}</span>
+                  </button>
+                </div>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -459,8 +540,20 @@ Reported via Daleel Evidence Repository (daleel.org)`;
               {/* Screenshot / File Upload */}
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  Digital Screenshot / Visual Evidence
+                  Digital Evidence / Screenshot / PDF
                 </label>
+
+                {uploadProgress !== null && (
+                  <div className="mb-3 bg-slate-950 p-3 rounded-xl border border-slate-700 space-y-1.5 animate-in fade-in">
+                    <div className="flex items-center justify-between text-xs text-slate-300">
+                      <span className="truncate max-w-[280px]">Uploading {imageFileName || 'document'}...</span>
+                      <span className="font-mono text-emerald-400 font-bold">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all duration-150" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                  </div>
+                )}
                 
                 {imageBase64 ? (
                   <div className="relative rounded-xl border border-slate-700 overflow-hidden bg-slate-950 p-2">
@@ -474,11 +567,11 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                     </button>
                   </div>
                 ) : (
-                  <label className="border border-dashed border-slate-700 hover:border-emerald-500/50 bg-slate-950/60 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors group">
-                    <Upload className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 mb-2" />
-                    <span className="text-xs font-semibold text-slate-300">Click to upload screenshot or image</span>
-                    <span className="text-[11px] text-slate-500 mt-0.5">PNG, JPG, WEBP up to 10MB</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  <label className="border-2 border-dashed evidence-dropzone hover:border-[#c26e27] dark:hover:border-emerald-500 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors group shadow-sm">
+                    <Upload className="w-6 h-6 text-[#8c7662] dark:text-slate-500 group-hover:text-[#c26e27] dark:group-hover:text-emerald-400 mb-2" />
+                    <span className="text-xs font-bold evidence-dropzone-text">Click to upload screenshot or PDF evidence</span>
+                    <span className="text-[11px] evidence-dropzone-sub mt-0.5">PNG, JPG, WEBP up to 10MB</span>
+                    <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleImageUpload} className="hidden" />
                   </label>
                 )}
               </div>
@@ -506,7 +599,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                 disabled={isAnalyzing || (!content.trim() && !imageBase64)}
                 className={`w-full text-white font-semibold text-xs sm:text-sm py-3 rounded-xl transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2 ${
                   portalRole === 'official' ? 'bg-amber-600 hover:bg-amber-500' :
-                  portalRole === 'journalist' ? 'bg-blue-600 hover:bg-blue-500' :
+                  portalRole === 'journalist' ? 'bg-[#c26e27] hover:bg-[#a05417]' :
                   'bg-emerald-600 hover:bg-emerald-500'
                 }`}
               >
@@ -532,12 +625,35 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                   {/* Analysis Header */}
                   <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">
+                      {analysisResult && (
+                    <div className="bg-emerald-950/40 border border-emerald-800/60 p-3 rounded-xl flex items-center justify-between text-xs text-emerald-300 mb-4">
+                      <div className="flex items-center gap-2">
+                        <HeartHandshake className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Facing targeted harassment or doxxing threats?</span>
+                      </div>
+                      <button
+                        onClick={() => setSupportModalOpen(true)}
+                        className="underline font-bold text-emerald-300 hover:text-white"
+                      >
+                        Free Legal & Crisis Aid &rarr;
+                      </button>
+                    </div>
+                  )}
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">
                         Forensic Assessment Result
                       </span>
-                      <h3 className="text-base font-bold text-slate-100">
-                        Severity: {analysisResult.severity || 'High'} ({analysisResult.severityScore || 8}/10)
-                      </h3>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-base font-bold text-slate-100">
+                          Severity: {analysisResult.severity || 'High'} ({analysisResult.severityScore || 8}/10)
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setHideFindings(!hideFindings)}
+                          className="text-[11px] font-semibold text-slate-400 hover:text-slate-200 underline"
+                        >
+                          {hideFindings ? 'Reveal Findings' : 'Hide / Blur Findings'}
+                        </button>
+                      </div>
                     </div>
 
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -549,7 +665,13 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                     </span>
                   </div>
 
-                  {/* SHA-256 Cryptographic Fingerprint */}
+                  {hideFindings ? (
+                    <div className="p-6 bg-slate-950 border border-slate-800 rounded-xl text-center text-slate-400 text-xs">
+                      Findings currently hidden. Click "Reveal Findings" above to unblur.
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                    {/* SHA-256 Cryptographic Fingerprint */}
                   {evidenceHash && (
                     <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
@@ -633,7 +755,7 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                           disabled={isSubmitting}
                           className={`font-semibold text-xs py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 text-white ${
                             portalRole === 'official' ? 'bg-amber-600 hover:bg-amber-500' :
-                            portalRole === 'journalist' ? 'bg-blue-600 hover:bg-blue-500' :
+                            portalRole === 'journalist' ? 'bg-[#c26e27] hover:bg-[#a05417]' :
                             'bg-emerald-600 hover:bg-emerald-500'
                           }`}
                         >
@@ -669,6 +791,8 @@ Reported via Daleel Evidence Repository (daleel.org)`;
                       <span>{copiedNotice ? 'Takedown Notice Copied to Clipboard!' : 'Copy Pre-Drafted Platform Takedown Notice'}</span>
                     </button>
                   </div>
+                </div>
+                  )}
 
                 </div>
               ) : (

@@ -1,9 +1,38 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mail, Twitter, Facebook, Instagram, Github, BookOpen } from 'lucide-react';
+import { Mail, Twitter, Facebook, Instagram, Github, Sun, Moon } from 'lucide-react';
 import { BsOctagonHalf } from 'react-icons/bs';
 
 export default function Footer() {
+  const [isDesert, setIsDesert] = useState(true);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const saved = localStorage.getItem('theme');
+      setIsDesert(saved !== 'dark');
+    };
+    syncTheme();
+    window.addEventListener('themechange', syncTheme);
+    return () => window.removeEventListener('themechange', syncTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDesert) {
+      setIsDesert(false);
+      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('desert-mode', 'light-mode');
+    } else {
+      setIsDesert(true);
+      localStorage.setItem('theme', 'desert');
+      document.documentElement.classList.add('desert-mode', 'light-mode');
+      document.documentElement.classList.remove('dark');
+    }
+    window.dispatchEvent(new Event('themechange'));
+  };
+
   return (
     <footer className="bg-[#060910] border-t border-slate-800/80 pt-14 pb-8 relative z-10 text-xs">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -46,7 +75,7 @@ export default function Footer() {
             <h3 className="text-slate-200 font-semibold mb-3">Investigation Portals</h3>
             <ul className="space-y-2 text-slate-400">
               <li><Link href="/login" className="hover:text-emerald-400 transition-colors">Community Reporter Portal</Link></li>
-              <li><Link href="/login" className="hover:text-blue-400 transition-colors">Journalist & Fact-Check Hub</Link></li>
+              <li><Link href="/login" className="hover:text-slate-200 transition-colors">Journalist & Fact-Check Hub</Link></li>
               <li><Link href="/login" className="hover:text-amber-400 transition-colors">Official & Agency Portal</Link></li>
               <li><Link href="/privacy" className="hover:text-slate-200 transition-colors">Privacy & Data Governance</Link></li>
             </ul>
@@ -57,17 +86,30 @@ export default function Footer() {
             <h3 className="text-slate-200 font-semibold mb-3">Investigative Desk</h3>
             <div className="bg-[#0f172a] border border-slate-800 p-3.5 rounded-xl space-y-2 text-slate-400">
               <p>For research partnerships, newsroom integration, or technical support:</p>
-              <a href="mailto:nizamulhaq500@gmail.com" className="flex items-center gap-2 text-slate-300 hover:text-emerald-400 transition-colors pt-1">
+              <a href="mailto:daleeel.project@gmail.com" className="flex items-center gap-2 text-slate-300 hover:text-emerald-400 transition-colors pt-1">
                 <Mail className="w-3.5 h-3.5" />
-                <span>nizamulhaq500@gmail.com</span>
+                <span>daleeel.project@gmail.com</span>
               </a>
             </div>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-400">
+        <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400">
           <p>&copy; {new Date().getFullYear()} Daleel Trust & Safety. All rights reserved.</p>
-          <p>Public Interest Evidence Repository</p>
+          
+          <div className="flex items-center gap-4">
+            {/* Minimalistic Inline Text Theme Toggle in Footer */}
+            <button
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer group"
+              title={isDesert ? "Switch to Greenish Night (Dark Mode)" : "Switch to Desert Sand (Light Mode)"}
+            >
+              {isDesert ? <Sun className="w-3.5 h-3.5 text-amber-500 group-hover:rotate-45 transition-transform" /> : <Moon className="w-3.5 h-3.5 text-emerald-400 group-hover:-rotate-12 transition-transform" />}
+              <span className="underline-offset-4 hover:underline">Theme: {isDesert ? 'Desert Sand' : 'Green Night'}</span>
+            </button>
+            <span className="text-slate-600 hidden sm:inline">&bull;</span>
+            <p>Public Interest Evidence Repository</p>
+          </div>
         </div>
       </div>
     </footer>

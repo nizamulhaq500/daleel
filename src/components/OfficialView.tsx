@@ -25,7 +25,12 @@ import {
   ListFilter
 } from 'lucide-react';
 import { generateDossierPDF } from '@/lib/pdf-generator';
+import { Code2 } from 'lucide-react';
 import ReporterView from './ReporterView';
+import NetworkClustering from './NetworkClustering';
+import PlatformScorecard from './PlatformScorecard';
+import { BarChart3 } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 function formatTimestamp(ts: any): string {
   if (!ts) return 'Recent';
@@ -71,7 +76,7 @@ export default function OfficialView() {
   const [reports, setReports] = useState<any[]>([]);
   const [stageFilter, setStageFilter] = useState<'all' | 'escalated' | 'takedown_requested' | 'resolved'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [portalMode, setPortalMode] = useState<'enforcement' | 'intake'>('enforcement');
+  const [portalMode, setPortalMode] = useState<'enforcement' | 'clusters' | 'audits' | 'intake'>('enforcement');
   const [mounted, setMounted] = useState(false);
   
   // Selected Case for Official Action
@@ -157,6 +162,48 @@ export default function OfficialView() {
     }
   };
 
+  const exportDiscoveryJson = (report: any) => {
+    const discoveryPayload = {
+      caseId: report.id,
+      schema: 'DALEEL-LEGAL-DISCOVERY-v1',
+      jurisdictionFrameworks: [
+        'EU Digital Services Act (DSA) Art. 16',
+        'UK Online Safety Act 2023',
+        'US Civil Rights Title II & 47 U.S.C.'
+      ],
+      timestamp: report.timestamp,
+      incident: {
+        sourcePlatform: report.sourcePlatform,
+        postUrl: report.postUrl,
+        rawContentText: report.content,
+        sha256EvidenceHash: report.evidenceHash,
+        severityScore: report.aiScore || 8
+      },
+      forensicFindings: {
+        codedTermsDetected: report.codedTermsFound || [],
+        academicDeconstruction: report.contextExplanation,
+        counterNarratives: report.counterNarratives || []
+      },
+      auditChainOfCustody: {
+        reporterId: report.reporterId,
+        verifyingJournalist: report.escalatedByName,
+        verifyingOrganization: report.escalatedByOrg,
+        escalationTimestamp: report.escalatedAt,
+        officialEnforcementOfficer: report.officialActionByName,
+        officialDepartment: report.officialActionByDept,
+        resolutionLog: report.resolutionNote
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(discoveryPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `discovery-package-${report.id.substring(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getLegalTakedownMemo = (report: any) => {
     return `OFFICIAL LEGAL NOTICE & TAKEDOWN DEMAND
 To: ${report.sourcePlatform} Trust, Safety & Compliance Division
@@ -221,6 +268,28 @@ Daleel Trust & Safety Repository (daleel.org)`;
                 <span>Case Command</span>
               </button>
               <button
+                onClick={() => setPortalMode('clusters')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  portalMode === 'clusters'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span>Botnet Clusters</span>
+              </button>
+              <button
+                onClick={() => setPortalMode('audits')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  portalMode === 'audits'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Platform Audits</span>
+              </button>
+              <button
                 onClick={() => setPortalMode('intake')}
                 className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   portalMode === 'intake'
@@ -255,6 +324,14 @@ Daleel Trust & Safety Repository (daleel.org)`;
           <div className="pt-2">
             <ReporterView portalRole="official" />
           </div>
+        ) : portalMode === 'clusters' ? (
+          <div className="pt-2">
+            <NetworkClustering userRole="official" />
+          </div>
+        ) : portalMode === 'audits' ? (
+          <div className="pt-2">
+            <PlatformScorecard />
+          </div>
         ) : (
           <>
             {/* Filter & Search Bar */}
@@ -285,7 +362,7 @@ Daleel Trust & Safety Repository (daleel.org)`;
                 </button>
                 <button
                   onClick={() => setStageFilter('takedown_requested')}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'takedown_requested' ? 'bg-blue-500/20 text-blue-300' : 'text-slate-400'}`}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'takedown_requested' ? 'bg-[#c26e27]/20 text-[#c26e27]' : 'text-slate-400'}`}
                 >
                   Takedowns ({takedownCount})
                 </button>
@@ -324,7 +401,7 @@ Daleel Trust & Safety Repository (daleel.org)`;
                           report.status === 'resolved'
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                             : report.status === 'takedown_requested'
-                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                            ? 'bg-[#c26e27]/10 text-[#c26e27] border border-[#c26e27]/20'
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         }`}>
                           {report.status === 'resolved' ? 'Enforced & Resolved' : report.status === 'takedown_requested' ? 'Takedown Demand Issued' : 'Verified by Journalist'}
@@ -440,10 +517,31 @@ Daleel Trust & Safety Repository (daleel.org)`;
                 )}
 
                 {selectedCase.editorialNotes && (
-                  <div className="p-3 bg-blue-950/20 border border-blue-900/40 rounded-lg text-blue-300 text-xs">
+                  <div className="p-3 bg-[#c26e27]/10 border border-[#c26e27]/30 rounded-lg text-[#c26e27] text-xs">
                     <strong>Journalist's Verification Notes:</strong> {selectedCase.editorialNotes}
                   </div>
                 )}
+              </div>
+
+              {/* Statutory Legal Jurisdiction Matcher */}
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                  Statutory Jurisdiction & Legal Compliance Precedents:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <strong className="text-slate-200 block mb-0.5">EU Digital Services Act</strong>
+                    <span className="text-slate-400">Art. 16 Notice & Takedown Action Mandatory</span>
+                  </div>
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <strong className="text-slate-200 block mb-0.5">UK Online Safety Act</strong>
+                    <span className="text-slate-400">Section 127 Unlawful Hate Communication</span>
+                  </div>
+                  <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <strong className="text-slate-200 block mb-0.5">US Civil Rights Title II</strong>
+                    <span className="text-slate-400">Targeted Intimidation & Incitement Precedent</span>
+                  </div>
+                </div>
               </div>
 
               {/* Legal Takedown Demand Generator */}
@@ -487,19 +585,29 @@ Daleel Trust & Safety Repository (daleel.org)`;
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
-              <button
-                onClick={() => generateOfficialPDF(selectedCase)}
-                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 w-full sm:w-auto justify-center"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Certified PDF</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => generateOfficialPDF(selectedCase)}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>PDF Dossier</span>
+                </button>
+                <button
+                  onClick={() => exportDiscoveryJson(selectedCase)}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                  title="Export court-ready JSON discovery package"
+                >
+                  <Code2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Discovery JSON</span>
+                </button>
+              </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => handleUpdateStatus('takedown_requested')}
                   disabled={isUpdating}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#c26e27] hover:bg-[#a05417] text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
                 >
                   Mark Takedown Issued
                 </button>

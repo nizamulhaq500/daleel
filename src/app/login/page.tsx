@@ -87,20 +87,20 @@ export default function LoginPage() {
           {/* Journalist Card */}
           <div 
             onClick={() => handleLogin('journalist')}
-            className="bg-[#0f172a] border border-slate-800 hover:border-blue-500/50 p-6 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group hover:shadow-xl"
+            className="bg-[#0f172a] border border-slate-800 hover:border-[#586c64]/50 p-6 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group hover:shadow-xl"
           >
             <div>
-              <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center mb-5">
-                <Shield className="w-6 h-6 text-blue-400" />
+              <div className="w-12 h-12 bg-[#889691]/20 border border-[#889691]/30 rounded-xl flex items-center justify-center mb-5">
+                <Shield className="w-6 h-6 text-[#586c64] dark:text-[#889691]" />
               </div>
-              <h4 className="text-slate-100 font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">
+              <h4 className="text-slate-100 font-bold text-lg mb-2 group-hover:text-[#586c64] dark:text-[#889691] transition-colors">
                 Journalist / Validator
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed mb-6">
                 Review community reports, cross-reference policy violations, and escalate verified cases.
               </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-semibold text-blue-400 pt-4 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-xs font-semibold text-[#586c64] dark:text-[#889691] pt-4 border-t border-slate-800/80">
               <span>Sign In / Register</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>

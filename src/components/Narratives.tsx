@@ -26,7 +26,7 @@ export default function Narratives() {
             <BookOpen className="w-3.5 h-3.5" />
             <span>Documented Hate Tropes & Counter-Narratives</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
+          <h2 id="narratives-heading" className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
             Verified Knowledge Base
           </h2>
           <p className="text-sm text-slate-400 mt-1 max-w-2xl">
@@ -65,16 +65,30 @@ export default function Narratives() {
         ))}
       </div>
 
-      {visibleCount < narratives.length && (
-        <div className="mt-8 text-center">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {visibleCount < narratives.length && (
           <button 
             onClick={() => setVisibleCount(prev => prev + 6)}
-            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg text-xs font-semibold transition-colors border border-slate-800 hover:border-slate-700"
+            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-800 hover:border-slate-700 shadow-sm"
           >
             Load More Documented Tropes ({narratives.length - visibleCount} remaining)
           </button>
-        </div>
-      )}
+        )}
+
+        {visibleCount > 6 && (
+          <button 
+            onClick={() => {
+              setVisibleCount(6);
+              // Scroll up gently to the narratives header
+              const el = document.getElementById('narratives-heading');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            className="px-5 py-2.5 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-800 hover:border-slate-700 shadow-sm flex items-center gap-1.5"
+          >
+            <span>Show Fewer Tropes (Collapse)</span>
+          </button>
+        )}
+      </div>
 
       {/* Narrative Modal */}
       {selectedNarrative && typeof document !== 'undefined' && createPortal(

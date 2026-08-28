@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { BsOctagonHalf } from 'react-icons/bs';
 import { 
   Users, 
   Shield, 
+  Sun, 
+  Moon, 
   Building, 
   ArrowRight, 
   CheckCircle2, 
@@ -19,6 +21,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import FactCheckStudio from '@/components/FactCheckStudio';
+import ThreatHeatmap from '@/components/ThreatHeatmap';
+import PlatformScorecard from '@/components/PlatformScorecard';
 import FactCheckBot from '@/components/FactCheckBot';
 import NewsTicker from '@/components/NewsTicker';
 import CrimesTimeline from '@/components/CrimesTimeline';
@@ -31,6 +35,41 @@ export default function LandingPage() {
   const router = useRouter();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('reporter');
+
+  const [isDesert, setIsDesert] = useState(true);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
+        setIsDesert(false);
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('desert-mode', 'light-mode');
+      } else {
+        setIsDesert(true);
+        document.documentElement.classList.add('desert-mode', 'light-mode');
+        document.documentElement.classList.remove('dark');
+      }
+    };
+    syncTheme();
+    window.addEventListener('themechange', syncTheme);
+    return () => window.removeEventListener('themechange', syncTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDesert) {
+      setIsDesert(false);
+      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('desert-mode', 'light-mode');
+    } else {
+      setIsDesert(true);
+      localStorage.setItem('theme', 'desert');
+      document.documentElement.classList.add('desert-mode', 'light-mode');
+      document.documentElement.classList.remove('dark');
+    }
+    window.dispatchEvent(new Event('themechange'));
+  };
 
   const openAuthForRole = (targetRole: UserRole) => {
     if (user) {
@@ -50,79 +89,82 @@ export default function LandingPage() {
       />
 
       {/* Top Header / Masthead */}
-      <header className="border-b border-slate-800/80 bg-[#090d16]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="app-header sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/30">
-            <BsOctagonHalf className="w-5 h-5 text-emerald-400 rotate-45" />
+          <div className="bg-emerald-500/15 desert-logo-box p-2 rounded-xl border border-emerald-500/30 shadow-sm">
+            <BsOctagonHalf className="w-5 h-5 text-emerald-400 desert-logo-icon rotate-45" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl tracking-tight text-white">Daleel</span>
-              <span className="text-emerald-400 text-sm font-arabic font-normal">دليل</span>
+              <span className="font-extrabold text-xl tracking-tight text-white desert-brand-text">Daleel</span>
+              <span className="text-emerald-400 desert-brand-arabic text-sm font-arabic font-bold">دليل</span>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase hidden sm:block">
+            <p className="text-[10px] text-slate-400 desert-sub-text font-semibold tracking-wide uppercase hidden sm:block">
               Public Interest Trust & Verification Pipeline
             </p>
           </div>
         </div>
 
-        {/* Header Portal Navigation & Login */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <FactCheckBot />
-
+        {/* Header Portal Navigation & Access */}
+        <div className="flex items-center gap-3 sm:gap-5">
           {loading ? (
             <div className="w-20 h-8 bg-slate-800/50 rounded animate-pulse" />
           ) : user ? (
             <button
               onClick={() => router.push(`/dashboard/${role}`)}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
+              className="text-xs font-bold text-[#111a16] dark:text-slate-200 hover:underline flex items-center gap-1 transition-all cursor-pointer"
             >
-              <span>Workspace ({role})</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>
+                {role === 'journalist' ? 'Journalist Hub' :
+                 role === 'official' ? 'Official Portal' :
+                 'Reporter Workspace'}
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             </button>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 sm:gap-5">
               <button 
                 onClick={() => openAuthForRole('reporter')}
-                className="hidden md:inline-flex text-xs font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-xs font-bold text-[#111a16] dark:text-slate-300 hover:text-emerald-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Reporter
               </button>
               <button 
                 onClick={() => openAuthForRole('journalist')}
-                className="hidden md:inline-flex text-xs font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-xs font-bold text-[#111a16] dark:text-slate-300 hover:text-emerald-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Journalist Hub
               </button>
               <button 
                 onClick={() => openAuthForRole('official')}
-                className="hidden md:inline-flex text-xs font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-xs font-bold text-[#111a16] dark:text-slate-300 hover:text-emerald-900 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Official
               </button>
-              <button
-                onClick={() => openAuthForRole('reporter')}
-                className="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 hover:border-slate-600 px-3.5 py-2 rounded-lg transition-colors"
-              >
-                Sign In
-              </button>
             </div>
           )}
+
+          <FactCheckBot />
         </div>
       </header>
 
       {/* Logged in notification banner (if user is logged in) */}
       {!loading && user && (
-        <div className="w-full bg-emerald-950/40 border-b border-emerald-800/40 px-4 sm:px-8 py-2.5 flex items-center justify-between text-xs sm:text-sm text-emerald-300">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>Signed in as <strong>{user.displayName || user.email}</strong> ({role})</span>
+        <div className="w-full app-signed-in-banner px-4 sm:px-8 py-2.5 flex items-center justify-between text-xs sm:text-sm">
+          <div className="flex items-center gap-2 font-medium">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Signed in as <strong className="font-bold">{user.displayName || user.email}</strong> ({role})</span>
           </div>
           <button
             onClick={() => router.push(`/dashboard/${role}`)}
-            className="font-semibold underline hover:text-emerald-200 flex items-center gap-1"
+            className="font-bold underline flex items-center gap-1 cursor-pointer transition-colors"
           >
-            Open Your Investigation Dashboard &rarr;
+            <span>
+              {role === 'journalist' ? 'Open Your Investigation Dashboard' :
+               role === 'official' ? 'Open Your Official Enforcement Portal' :
+               'Open Your Reporting Workspace'}
+            </span>
+            <span>&rarr;</span>
           </button>
         </div>
       )}
@@ -223,16 +265,16 @@ export default function LandingPage() {
             </div>
 
             {/* PORTAL 2: Journalist & Fact-Checker */}
-            <div className="bg-[#0f172a] border border-slate-800 hover:border-blue-500/40 rounded-2xl p-6 flex flex-col justify-between transition-all group hover:shadow-xl">
+            <div className="bg-[#0f172a] border border-slate-800 hover:border-[#586c64]/50 rounded-2xl p-6 flex flex-col justify-between transition-all group hover:shadow-xl">
               <div>
-                <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center mb-5">
-                  <Shield className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-[#889691]/20 border border-[#889691]/30 rounded-xl flex items-center justify-center mb-5">
+                  <Shield className="w-6 h-6 text-[#586c64] dark:text-[#889691]" />
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-xl font-bold text-slate-100 group-hover:text-[#586c64] dark:group-hover:text-[#889691] transition-colors">
                     Journalist / Validator
                   </h3>
-                  <span className="text-[11px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
+                  <span className="text-[11px] font-semibold text-[#586c64] dark:text-[#889691] bg-[#889691]/15 px-2 py-0.5 rounded">
                     Investigative
                   </span>
                 </div>
@@ -241,15 +283,15 @@ export default function LandingPage() {
                 </p>
                 <ul className="space-y-2.5 mb-6 text-xs text-slate-300">
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#586c64] dark:text-[#889691] shrink-0 mt-0.5" />
                     <span>Review & triage community submissions in real-time</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#586c64] dark:text-[#889691] shrink-0 mt-0.5" />
                     <span>Cross-reference platform terms of service violations</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#586c64] dark:text-[#889691] shrink-0 mt-0.5" />
                     <span>Validate and escalate verified cases to public authorities</span>
                   </li>
                 </ul>
@@ -257,7 +299,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => openAuthForRole('journalist')}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors shadow-sm"
+                className="w-full flex items-center justify-center gap-2 bg-[#586c64] hover:bg-[#465750] text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors shadow-sm"
               >
                 <span>{user && role === 'journalist' ? 'Open Journalist Workspace' : 'Enter Journalist Hub'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -299,7 +341,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => openAuthForRole('official')}
-                className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors shadow-sm"
+                className="w-full flex items-center justify-center gap-2 bg-[#c26e27] hover:bg-[#a05417] text-white text-xs font-semibold py-3 px-4 rounded-xl transition-colors shadow-sm"
               >
                 <span>{user && role === 'official' ? 'Open Official Workspace' : 'Enter Official Portal'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -363,12 +405,14 @@ export default function LandingPage() {
 
         {/* VERIFIED KNOWLEDGE BASE / NARRATIVES */}
         <section className="w-full">
-          <Narratives />
+          <ThreatHeatmap />
+        <Narratives />
         </section>
 
         {/* HISTORICAL EVIDENCE & CRIMES TIMELINE */}
         <section className="w-full">
-          <CrimesTimeline />
+          <PlatformScorecard />
+        <CrimesTimeline />
         </section>
 
       </div>
