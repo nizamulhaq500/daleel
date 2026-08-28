@@ -11,6 +11,7 @@ import ProfileSettingsModal from './ProfileSettingsModal';
 
 export default function JournalistView() {
   const { user, dbUser } = useAuth();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
   const [totalEscalated, setTotalEscalated] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +57,8 @@ export default function JournalistView() {
   };
 
   const generatePDF = (report: any) => {
+    setIsGeneratingPdf(true);
+    try {
     const doc = new jsPDF();
     
     // --- BRAND HEADER ---
@@ -178,6 +181,9 @@ export default function JournalistView() {
     doc.text(splitNotes, 20, y + 10);
     
     doc.save(`Daleel-Escalation-${report.id.substring(0,6)}.pdf`);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (

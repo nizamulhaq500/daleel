@@ -9,7 +9,7 @@ const TRENDING_CASES = [
     platform: 'X (Twitter)',
     threat: 'Genocide Dog-Whistle',
     content: 'Mass coordinated reply campaign using "Remove Kebab" memes targeting Muslim politicians in Europe.',
-    refutation: 'Daleel analysis confirms this is a coordinated synthetic bot network originating from 3 IP clusters. This phrase is recognized by the UN as hate speech linked to the Srebrenica genocide and violates X\'s Violent Speech policy. Not organic engagement.',
+    refutation: 'Daleel analysis confirms this is a coordinated synthetic network. This phrase is recognized by international human rights monitors as hate speech linked to the Srebrenica genocide and violates standard violent speech policies.',
     minutesAgo: 2,
     authorName: '@EuropaFirst99',
     authorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Europa',
@@ -20,7 +20,7 @@ const TRENDING_CASES = [
     platform: 'TikTok',
     threat: 'Decontextualized Video',
     content: 'Viral video falsely claiming Muslims are burning a church in France.',
-    refutation: 'Reverse image search and metadata analysis verifies this footage is actually from a 2018 electrical building fire in Egypt. The audio has been digitally altered to add synthetic Arabic chanting. Flagged for False Context.',
+    refutation: 'Reverse image search and metadata analysis verifies this footage is actually from a 2018 electrical building fire in Egypt. The audio was digitally altered with synthetic chants to fabricate false context.',
     minutesAgo: 8,
     authorName: 'TruthSeeker_Official',
     authorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Seeker',
@@ -29,9 +29,9 @@ const TRENDING_CASES = [
   {
     id: 'TR-894',
     platform: 'Facebook',
-    threat: 'Economic Boycott Conspiracy',
+    threat: 'Economic Conspiracy',
     content: 'Viral groups urging boycott of "Halal certification", claiming it funds terrorism via "Jizya tax".',
-    refutation: 'Halal certification is a standard commercial food compliance audit, identical in function to Kosher or Organic certifications. Multiple global financial task forces have thoroughly audited these agencies and confirmed absolutely no financial links to terror networks exist.',
+    refutation: 'Halal certification is a voluntary commercial food compliance audit, identical in structure to Kosher or Organic certifications. Independent audits by multiple global financial authorities confirm zero terror-financing links.',
     minutesAgo: 14,
     authorName: 'Citizens United Group',
     authorAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Citizens',
@@ -53,82 +53,80 @@ export default function NewsTicker() {
 
   return (
     <div 
-      className="bg-slate-900 border border-slate-800 rounded-3xl p-6 h-full flex flex-col relative overflow-hidden group"
+      className="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 h-full flex flex-col relative overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-opacity duration-1000 group-hover:opacity-100 opacity-50"></div>
-      
-      <div className="relative z-20 flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-slate-950 rounded-xl flex items-center justify-center border border-slate-800 shadow-inner">
-            <TrendingUp className="w-5 h-5 text-emerald-500" />
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800">
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Live Threat Intelligence</h3>
-            <p className="text-xs text-slate-400 font-medium tracking-wide uppercase mt-1 flex items-center gap-1">
-              <RefreshCw className="w-3 h-3 animate-spin-slow" /> Network Sync Active
+            <h3 className="text-base font-bold text-slate-100 tracking-tight">Live Disinformation Tracker</h3>
+            <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+              <RefreshCw className="w-3 h-3 text-emerald-400 animate-spin" /> Cross-Platform Monitoring
             </p>
           </div>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           {TRENDING_CASES.map((_, idx) => (
             <button 
               key={idx} 
               onClick={() => setActiveIndex(idx)}
-              className={`h-2 rounded-full transition-all duration-500 cursor-pointer ${idx === activeIndex ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-700 hover:bg-slate-400'}`}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIndex ? 'w-6 bg-emerald-500' : 'w-1.5 bg-slate-700 hover:bg-slate-600'}`}
               aria-label={`View threat ${idx + 1}`}
             />
           ))}
         </div>
       </div>
 
-      <div className="relative flex-1">
+      <div className="relative flex-1 min-h-[300px]">
         {TRENDING_CASES.map((caseData, idx) => (
           <div 
             key={caseData.id}
-            className={`absolute inset-0 transition-all duration-700 ease-in-out flex flex-col justify-start pt-2 ${
-              idx === activeIndex ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8 pointer-events-none'
+            className={`absolute inset-0 transition-all duration-500 ease-in-out flex flex-col justify-between ${
+              idx === activeIndex ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-bold uppercase tracking-wider w-max">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                {caseData.threat}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded text-xs font-semibold">
+                  <AlertTriangle className="w-3 h-3" />
+                  {caseData.threat}
+                </span>
+                <a href={caseData.postUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                  Reference <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
-              <a href={caseData.postUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-emerald-400 transition-colors">
-                View Source <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
 
-            <div className="flex items-center gap-3 mb-4 p-3 bg-slate-950/50 rounded-xl border border-slate-800/50">
-              <img src={caseData.authorAvatar} alt="Author Avatar" className="w-10 h-10 rounded-full bg-slate-800" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-200">{caseData.authorName}</span>
-                  {caseData.platform.includes('Twitter') && <Twitter className="w-3.5 h-3.5 text-blue-400" />}
-                  {caseData.platform.includes('TikTok') && <Video className="w-3.5 h-3.5 text-pink-500" />}
-                  {caseData.platform.includes('Facebook') && <Facebook className="w-3.5 h-3.5 text-blue-500" />}
+              <div className="flex items-center gap-2.5 mb-3 p-2.5 bg-slate-900/90 rounded-lg border border-slate-800">
+                <img src={caseData.authorAvatar} alt="" className="w-7 h-7 rounded-full bg-slate-800" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-slate-200 truncate">{caseData.authorName}</span>
+                    {caseData.platform.includes('Twitter') && <Twitter className="w-3 h-3 text-sky-400 shrink-0" />}
+                    {caseData.platform.includes('TikTok') && <Video className="w-3 h-3 text-pink-400 shrink-0" />}
+                    {caseData.platform.includes('Facebook') && <Facebook className="w-3 h-3 text-blue-400 shrink-0" />}
+                  </div>
+                  <span className="text-[10px] text-slate-400">{caseData.platform}</span>
                 </div>
-                <span className="text-xs text-slate-500">{caseData.platform}</span>
+              </div>
+              
+              <p className="text-sm text-slate-200 font-medium leading-relaxed mb-3 italic border-l-2 border-slate-700 pl-3">
+                "{caseData.content}"
+              </p>
+              
+              <div className="bg-slate-900/90 border-l-2 border-emerald-500 p-3 rounded-r-lg">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Daleel Finding</span>
+                <p className="text-xs text-slate-300 leading-relaxed">{caseData.refutation}</p>
               </div>
             </div>
             
-            <p className="text-lg text-slate-200 font-medium leading-relaxed mb-6 italic border-l-2 border-slate-700 pl-4">
-              "{caseData.content}"
-            </p>
-            
-            <div className="bg-slate-950 border-l-2 border-emerald-500 p-4 rounded-r-xl">
-              <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest block mb-2">Daleel Refutation</span>
-              <p className="text-sm text-slate-300 leading-relaxed">{caseData.refutation}</p>
-            </div>
-            
-            <div className="mt-auto pt-6 flex items-center justify-between text-xs font-bold text-slate-500">
-              <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 flex items-center gap-1.5">
-                <RefreshCw className="w-3.5 h-3.5" /> Status: Actively Tracked
-              </span>
-              <span className="flex items-center gap-1 text-slate-600">
-                <Clock className="w-3.5 h-3.5" /> Detected {caseData.minutesAgo}m ago
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 mt-2">
+              <span className="text-emerald-400/90 font-medium">Actively Cataloged</span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Logged {caseData.minutesAgo}m ago
               </span>
             </div>
           </div>

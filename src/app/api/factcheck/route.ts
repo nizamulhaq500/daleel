@@ -29,12 +29,9 @@ async function getMockResponse(query: string, imageBase64?: string) {
 }
 
 export async function POST(request: Request) {
+  // Authorization is optional for public landing page queries, but supported for authenticated users
   const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
-  }
-  // Note: For full production security, verify this token with firebase-admin.
-  const token = authHeader.split('Bearer ')[1];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : null;
 
   try {
     const { query, imageBase64 } = await request.json();

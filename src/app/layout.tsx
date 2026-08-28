@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProfileCompletionModal from "@/components/ProfileCompletionModal";
 import FactCheckBot from "@/components/FactCheckBot";

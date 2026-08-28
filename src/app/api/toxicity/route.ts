@@ -23,6 +23,13 @@ const generateMockScores = (content: string): ToxicityScores => {
 };
 
 export async function POST(request: Request) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
+  }
+  // Note: For full production security, verify this token with firebase-admin.
+  const token = authHeader.split('Bearer ')[1];
+
   try {
     const body = await request.json();
     const { content } = body;

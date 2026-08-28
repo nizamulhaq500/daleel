@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Twitter, Facebook, MessageCircle, Link2, Share2, Check, Linkedin, Send, Mail } from 'lucide-react';
+import { Twitter, Facebook, MessageCircle, Link2, Share2, Check, Linkedin, Send, Mail, X, BookOpen } from 'lucide-react';
 import { narratives, Narrative } from '@/lib/narratives';
 
 export default function Narratives() {
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [selectedNarrative, setSelectedNarrative] = useState<Narrative | null>(null);
   const [copied, setCopied] = useState(false);
 
-  
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -20,58 +19,59 @@ export default function Narratives() {
   const displayedNarratives = narratives.slice(0, visibleCount);
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-16 px-4 relative">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold mb-4 text-slate-100">Know What Islamophobes Think of You</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-          Get ready with your answers. Below are the actual narratives, conspiracy theories, and dog whistles spread by hate groups—and the factual refutations you need to dismantle them.
-        </p>
+    <div className="w-full py-12">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-4 border-b border-slate-800">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1.5">
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Documented Hate Tropes & Counter-Narratives</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
+            Verified Knowledge Base
+          </h2>
+          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+            Exposing recurrent anti-Muslim conspiracy theories, historical misrepresentations, and dog-whistles alongside verified factual refutations.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {displayedNarratives.map((item) => (
           <div 
             key={item.id} 
             onClick={() => { setSelectedNarrative(item); setCopied(false); }}
-            className="group relative bg-slate-900 border border-slate-800 rounded-xl p-6 overflow-hidden hover:border-emerald-500/50 transition-all duration-500 cursor-pointer"
+            className="group bg-[#0f172a] border border-slate-800 hover:border-slate-700 rounded-xl p-5 flex flex-col justify-between transition-all cursor-pointer hover:shadow-lg"
           >
-            {/* The initial claim state */}
-            <div className="relative z-10 h-full flex flex-col justify-between transition-transform duration-500 ease-in-out group-hover:-translate-x-full group-hover:opacity-0">
-              <div>
-                <span className="inline-block px-3 py-1 bg-red-500/10 text-red-400 text-xs font-semibold rounded-full mb-4">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="inline-block px-2.5 py-0.5 bg-red-500/10 text-red-400 text-xs font-semibold rounded">
                   {item.category}
                 </span>
-                <h3 className="text-xl font-semibold text-slate-200 mb-2 leading-snug">
-                  "{item.claim}"
-                </h3>
+                <span className="text-[11px] text-slate-400 font-medium">Deconstructed</span>
               </div>
-              <div className="mt-6 flex items-center justify-between text-emerald-500 text-sm font-medium">
-                <span>Swipe right / Hover for the Truth &rarr;</span>
-                <span className="text-slate-500">Click to expand</span>
-              </div>
-            </div>
-
-            {/* The refutation reveal state */}
-            <div className="absolute inset-0 z-20 p-6 bg-slate-800 flex flex-col justify-center transform translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out">
-              <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full mb-4 w-max">
-                The Reality
-              </span>
-              <p className="text-slate-200 text-sm leading-relaxed line-clamp-4">
+              <h3 className="text-sm sm:text-base font-semibold text-slate-100 mb-3 leading-snug line-clamp-2">
+                "{item.claim}"
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-4">
                 {item.reality}
               </p>
-              <div className="mt-4 text-emerald-400 text-xs font-semibold">Click to read full details</div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-emerald-400 font-medium">
+              <span>View Evidence & Share</span>
+              <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
             </div>
           </div>
         ))}
       </div>
 
       {visibleCount < narratives.length && (
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <button 
-            onClick={() => setVisibleCount(prev => prev + 10)}
-            className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700"
+            onClick={() => setVisibleCount(prev => prev + 6)}
+            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg text-xs font-semibold transition-colors border border-slate-800 hover:border-slate-700"
           >
-            Load 10 More Narratives
+            Load More Documented Tropes ({narratives.length - visibleCount} remaining)
           </button>
         </div>
       )}
@@ -83,91 +83,64 @@ export default function Narratives() {
           onClick={() => setSelectedNarrative(null)}
         >
           <div 
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl animate-in zoom-in-95 duration-200"
+            className="bg-[#0f172a] border border-slate-700/80 rounded-2xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <button 
               onClick={() => setSelectedNarrative(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 bg-slate-800 rounded-full hover:bg-slate-700"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 bg-slate-900 rounded-full hover:bg-slate-800"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-4 h-4" />
             </button>
             
-            <div className="mb-8 pt-2">
-              <span className="inline-block px-3 py-1 bg-red-500/10 text-red-400 text-xs font-semibold rounded-full mb-4">
-                False Narrative ({selectedNarrative.category})
+            <div className="mb-6 pt-1">
+              <span className="inline-block px-2.5 py-1 bg-red-500/10 text-red-400 text-xs font-semibold rounded mb-3">
+                False Narrative: {selectedNarrative.category}
               </span>
-              <h3 className="text-2xl font-bold text-slate-100 leading-snug">
+              <h3 className="text-xl font-bold text-slate-100 leading-snug">
                 "{selectedNarrative.claim}"
               </h3>
             </div>
             
-            <div className="bg-slate-800 rounded-xl p-6 border border-emerald-900/50 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-              <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full mb-4">
-                The Reality & Fact Check
+            <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 mb-6">
+              <span className="inline-block px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded mb-3">
+                Factual Reality & Context
               </span>
-              <p className="text-slate-200 text-base leading-relaxed whitespace-pre-wrap">
+              <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
                 {selectedNarrative.reality}
               </p>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-800">
-              <h4 className="text-slate-300 font-bold mb-4 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-emerald-500" />
-                Spread Facts, Debunk Claims
+            <div className="pt-4 border-t border-slate-800">
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                Disseminate Counter-Narrative
               </h4>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 <button 
-                  onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("False Claim: " + selectedNarrative.claim + "\n\nThe Truth: " + selectedNarrative.reality + "\n\n#Daleel #FactCheck")}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 text-[#1DA1F2] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                  onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("False Claim: " + selectedNarrative.claim + "\n\nVerified Fact: " + selectedNarrative.reality + "\n\nvia @Daleel")}`, '_blank')}
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                 >
-                  <Twitter className="w-4 h-4" /> X
-                </button>
-                <button 
-                  onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=https://daleel.com`, '_blank')}
-                  className="flex items-center gap-2 bg-[#4267B2]/10 hover:bg-[#4267B2]/20 text-[#4267B2] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  <Facebook className="w-4 h-4" /> FB
+                  <Twitter className="w-3.5 h-3.5 text-sky-400" /> X (Twitter)
                 </button>
                 <button 
                   onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Fact Check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4" /> WA
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" /> WhatsApp
                 </button>
                 <button 
-                  onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://daleel.com&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#0077b5]/10 hover:bg-[#0077b5]/20 text-[#0077b5] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                  onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://daleel.org&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                 >
-                  <Linkedin className="w-4 h-4" /> LinkedIn
-                </button>
-                <button 
-                  onClick={() => window.open(`https://t.me/share/url?url=https://daleel.com&text=${encodeURIComponent("Fact Check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 text-[#0088cc] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  <Send className="w-4 h-4" /> Telegram
-                </button>
-                <button 
-                  onClick={() => window.open(`https://reddit.com/submit?url=https://daleel.com&title=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}`, '_blank')}
-                  className="flex items-center gap-2 bg-[#ff4500]/10 hover:bg-[#ff4500]/20 text-[#ff4500] px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  <span className="w-4 h-4 flex items-center justify-center font-bold text-[10px]">re</span> Reddit
-                </button>
-                <button 
-                  onClick={() => window.open(`mailto:?subject=${encodeURIComponent('Fact Check: ' + selectedNarrative.claim)}&body=${encodeURIComponent("Check out this fact check:\n\nClaim: " + selectedNarrative.claim + "\n\nReality: " + selectedNarrative.reality)}`, '_blank')}
-                  className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  <Mail className="w-4 h-4" /> Email
+                  <Linkedin className="w-3.5 h-3.5 text-blue-400" /> LinkedIn
                 </button>
                 <button 
                   onClick={() => copyToClipboard(`Fact Check:\n\nClaim: ${selectedNarrative.claim}\n\nReality: ${selectedNarrative.reality}`)}
-                  className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ml-auto"
+                  className="flex items-center gap-1.5 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ml-auto"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />} 
-                  {copied ? 'Copied!' : 'Copy'}
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />} 
+                  {copied ? 'Copied to Clipboard!' : 'Copy Summary'}
                 </button>
               </div>
             </div>

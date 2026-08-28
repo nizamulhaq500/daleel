@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { Shield, CheckCircle } from 'lucide-react';
 
 export default function ProcessedHistory({ role }: { role: 'journalist' | 'official' }) {
