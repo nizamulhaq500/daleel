@@ -29,7 +29,7 @@ import {
   ExternalLink,
   BookOpen
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { generateDossierPDF } from '@/lib/pdf-generator';
 
 // Helper to compute SHA-256 hash in browser
 async function computeSha256(text: string): Promise<string> {
@@ -201,81 +201,19 @@ export default function ReporterView() {
     }
   };
 
-  const generatePDF = (reportData: any) => {
+  const generatePDF = async (reportData: any) => {
     try {
-      const doc = new jsPDF();
-      
-      // Header Banner
-      doc.setFillColor(9, 13, 22);
-      doc.rect(0, 0, 210, 32, 'F');
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.setTextColor(16, 185, 129);
-      doc.text('DALEEL EVIDENCE DOSSIER', 20, 16);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(148, 163, 184);
-      doc.text('Cryptographically Verified Public Interest Record', 20, 24);
-      
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 135, 16);
-      doc.text(`Hash: ${(reportData.evidenceHash || evidenceHash || 'N/A').substring(0, 18)}...`, 135, 24);
-      
-      let y = 45;
-
-      // Metadata Block
-      doc.setFillColor(248, 250, 252);
-      doc.rect(20, y, 170, 28, 'F');
-      doc.setDrawColor(226, 232, 240);
-      doc.rect(20, y, 170, 28, 'S');
-
-      doc.setTextColor(15, 23, 42);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text('INCIDENT METADATA', 25, y + 7);
-      
-      doc.setFont("helvetica", "normal");
-      doc.text(`Source Platform: ${reportData.sourcePlatform || sourcePlatform}`, 25, y + 14);
-      doc.text(`Reporter Identity: ${reportData.reporterName || (isAnonymous ? 'Anonymous Whistleblower' : user?.displayName || 'Community Reporter')}`, 25, y + 21);
-      doc.text(`Reference URL: ${reportData.postUrl || postUrl || 'Direct Upload'}`, 105, y + 14);
-      doc.text(`Severity Classification: ${reportData.severity || analysisResult?.severity || 'High'}`, 105, y + 21);
-
-      y += 38;
-
-      // Content Section
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42);
-      doc.text('DOCUMENTED EVIDENCE TEXT:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const splitText = doc.splitTextToSize(reportData.content || content || 'No text attached.', 170);
-      doc.text(splitText, 20, y);
-      y += (splitText.length * 5) + 8;
-
-      // AI Analysis & Academic Context
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text('FORENSIC CONTEXT & COUNTER-NARRATIVE:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const explanation = reportData.contextExplanation || analysisResult?.contextExplanation || 'Verified anti-Muslim coded trope.';
-      const splitExplanation = doc.splitTextToSize(explanation, 170);
-      doc.text(splitExplanation, 20, y);
-      y += (splitExplanation.length * 5) + 10;
-
-      // Chain of Custody Footer
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text('Verified through Daleel Trust & Safety Pipeline. Indexed against UN & Bridge Initiative academic frameworks.', 20, 280);
-
-      doc.save(`daleel-evidence-${Date.now().toString(16)}.pdf`);
+      await generateDossierPDF({ 
+        role: 'reporter', 
+        report: { 
+          ...reportData, 
+          content: reportData.content || content,
+          sourcePlatform: reportData.sourcePlatform || sourcePlatform,
+          postUrl: reportData.postUrl || postUrl,
+          imageBase64: reportData.imageBase64 || imageBase64,
+          evidenceHash: reportData.evidenceHash || evidenceHash
+        } 
+      });
     } catch (e) {
       console.error('PDF error:', e);
       alert('Could not compile PDF.');

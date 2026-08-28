@@ -26,7 +26,7 @@ import {
   Building,
   User
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { generateDossierPDF } from '@/lib/pdf-generator';
 
 export default function JournalistView() {
   const { user, dbUser } = useAuth();
@@ -95,81 +95,9 @@ export default function JournalistView() {
     }
   };
 
-  const generateJournalistPDF = (report: any) => {
+  const generateJournalistPDF = async (report: any) => {
     try {
-      const doc = new jsPDF();
-      
-      // Masthead
-      doc.setFillColor(9, 13, 22);
-      doc.rect(0, 0, 210, 32, 'F');
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.setTextColor(59, 130, 246);
-      doc.text('DALEEL INVESTIGATION BRIEF', 20, 16);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(148, 163, 184);
-      doc.text('Verified Incident Dossier for Media & Watchdog Publication', 20, 24);
-      
-      doc.text(`Report ID: #${report.id.substring(0, 8).toUpperCase()}`, 140, 20);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 26);
-      
-      let y = 45;
-
-      // Verification Badge
-      doc.setFillColor(239, 246, 255);
-      doc.rect(20, y, 170, 26, 'F');
-      doc.setDrawColor(191, 219, 254);
-      doc.rect(20, y, 170, 26, 'S');
-
-      doc.setTextColor(30, 64, 175);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text('JOURNALIST VERIFICATION STAMP', 25, y + 7);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(15, 23, 42);
-      doc.text(`Validator: ${report.escalatedByName || user?.displayName || 'Newsroom Analyst'}`, 25, y + 14);
-      doc.text(`Organization: ${report.escalatedByOrg || dbUser?.organization || 'Investigative Desk'}`, 25, y + 20);
-      doc.text(`Severity: ${report.severity || 'High'}`, 110, y + 14);
-      doc.text(`Source: ${report.sourcePlatform || 'Social Media'}`, 110, y + 20);
-
-      y += 36;
-
-      // Evidence Text
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42);
-      doc.text('1. DOCUMENTED EVIDENCE:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const splitText = doc.splitTextToSize(report.content || 'Attached media evidence.', 170);
-      doc.text(splitText, 20, y);
-      y += (splitText.length * 5) + 8;
-
-      // Editorial Assessment
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text('2. FACT-CHECKING CONTEXT & COUNTER-NARRATIVE:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const notes = report.editorialNotes || report.contextExplanation || 'Verified anti-Muslim coded language.';
-      const splitNotes = doc.splitTextToSize(notes, 170);
-      doc.text(splitNotes, 20, y);
-      y += (splitNotes.length * 5) + 8;
-
-      // Digital Hash
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text(`Cryptographic Fingerprint: ${report.evidenceHash || 'SHA-256 Validated'}`, 20, y);
-
-      doc.save(`journalist-brief-${report.id.substring(0, 8)}.pdf`);
+      await generateDossierPDF({ role: 'journalist', report: { ...report, editorialNotes } });
     } catch (e) {
       console.error('PDF error:', e);
       alert('Could not compile PDF brief.');

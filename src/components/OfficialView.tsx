@@ -26,7 +26,7 @@ import {
   Gavel, 
   CheckSquare
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { generateDossierPDF } from '@/lib/pdf-generator';
 
 export default function OfficialView() {
   const { user, dbUser } = useAuth();
@@ -95,95 +95,9 @@ export default function OfficialView() {
     }
   };
 
-  const generateOfficialPDF = (report: any) => {
+  const generateOfficialPDF = async (report: any) => {
     try {
-      const doc = new jsPDF();
-      
-      // Header Banner
-      doc.setFillColor(9, 13, 22);
-      doc.rect(0, 0, 210, 32, 'F');
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.setTextColor(245, 158, 11);
-      doc.text('DALEEL OFFICIAL ENFORCEMENT DOSSIER', 20, 16);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(148, 163, 184);
-      doc.text('Certified Evidence Package for Platform Compliance & Legal Notice', 20, 24);
-      
-      doc.text(`Incident ID: #${report.id.substring(0, 8).toUpperCase()}`, 135, 16);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 135, 24);
-      
-      let y = 45;
-
-      // Verification & Chain of Custody Stamp
-      doc.setFillColor(254, 243, 199);
-      doc.rect(20, y, 170, 28, 'F');
-      doc.setDrawColor(251, 191, 36);
-      doc.rect(20, y, 170, 28, 'S');
-
-      doc.setTextColor(146, 64, 14);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text('OFFICIAL JURISDICTION & CHAIN OF CUSTODY CERTIFICATE', 25, y + 7);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(15, 23, 42);
-      doc.text(`Verifying Journalist: ${report.escalatedByName || 'Newsroom Analyst'} (${report.escalatedByOrg || 'Investigative Desk'})`, 25, y + 14);
-      doc.text(`Official Authority: ${report.officialActionByName || user?.displayName || 'Civil Rights Officer'}`, 25, y + 20);
-      doc.text(`Action Status: ${report.status?.toUpperCase() || 'ESCALATED'}`, 120, y + 14);
-      doc.text(`Platform: ${report.sourcePlatform || 'Web'}`, 120, y + 20);
-
-      y += 38;
-
-      // Evidence Text
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42);
-      doc.text('1. DOCUMENTED EVIDENCE OF INCITEMENT / HATE SPEECH:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const splitText = doc.splitTextToSize(report.content || 'Attached visual media evidence.', 170);
-      doc.text(splitText, 20, y);
-      y += (splitText.length * 5) + 8;
-
-      // Academic Finding & Context
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text('2. INVESTIGATIVE DECONSTRUCTION & COUNTER-EVIDENCE:', 20, y);
-      y += 6;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const contextText = report.contextExplanation || 'Content violates statutory online safety hate speech provisions.';
-      const splitContext = doc.splitTextToSize(contextText, 170);
-      doc.text(splitContext, 20, y);
-      y += (splitContext.length * 5) + 8;
-
-      // Resolution Notes
-      if (report.resolutionNote) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text('3. OFFICIAL ENFORCEMENT & COMPLIANCE LOG:', 20, y);
-        y += 6;
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        const splitResolution = doc.splitTextToSize(report.resolutionNote, 170);
-        doc.text(splitResolution, 20, y);
-        y += (splitResolution.length * 5) + 8;
-      }
-
-      // Cryptographic SHA-256 Hash
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text(`Cryptographic SHA-256 Signature: ${report.evidenceHash || 'SHA-256 Validated'}`, 20, y);
-
-      doc.save(`official-dossier-${report.id.substring(0, 8)}.pdf`);
+      await generateDossierPDF({ role: 'official', report });
     } catch (e) {
       console.error('PDF error:', e);
       alert('Could not compile official PDF dossier.');
