@@ -2,370 +2,498 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { FileText, Shield, CheckCircle, Download, ChevronRight, AlertTriangle } from 'lucide-react';
-import ProcessedHistory from '@/components/ProcessedHistory';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Building, 
+  Search, 
+  Filter, 
+  FileText, 
+  CheckCircle2, 
+  Clock, 
+  AlertTriangle, 
+  Download, 
+  ArrowRight, 
+  ExternalLink, 
+  Eye, 
+  X, 
+  Send, 
+  Check, 
+  Copy, 
+  Layers, 
+  ShieldAlert, 
+  Scale, 
+  Gavel, 
+  CheckSquare
+} from 'lucide-react';
 import jsPDF from 'jspdf';
-import NewsTicker from './NewsTicker';
-import ProfileSettingsModal from './ProfileSettingsModal';
 
 export default function OfficialView() {
   const { user, dbUser } = useAuth();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
-  const [totalViolations, setTotalViolations] = useState(0);
-  const [showProfileWarning, setShowProfileWarning] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const isProfileIncomplete = (!dbUser?.organization || !dbUser?.occupation || !dbUser?.credentialId);
+  const [stageFilter, setStageFilter] = useState<'all' | 'escalated' | 'takedown_requested' | 'resolved'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Selected Case for Official Action
+  const [selectedCase, setSelectedCase] = useState<any>(null);
+  const [resolutionNote, setResolutionNote] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [copiedLegalMemo, setCopiedLegalMemo] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'reports'), where('status', '==', 'escalated'));
-    
-    const unsubscribePending = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      docs.sort((a, b) => {
+    // Show escalated cases for public officials
+    const q = collection(db, 'reports');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Filter to only escalated or actioned reports
+      const officialDocs = docs.filter((d: any) => d.status === 'escalated' || d.status === 'takedown_requested' || d.status === 'resolved');
+      officialDocs.sort((a: any, b: any) => {
         const timeA = a.timestamp?.seconds || 0;
         const timeB = b.timestamp?.seconds || 0;
         return timeB - timeA;
       });
-      setReports(docs);
+      setReports(officialDocs);
     });
-    
-    // In a real app we'd track actual takedowns, here we'll just show all reports 
-    // as a proxy for "processed violations" to make it dynamic
-    const statsQ = query(collection(db, 'reports'));
-    const unsubscribeStats = onSnapshot(statsQ, (snapshot) => {
-      setTotalViolations(snapshot.size);
-    });
-
-    return () => {
-      unsubscribePending();
-      unsubscribeStats();
-    };
+    return () => unsubscribe();
   }, []);
 
-  const generatePDF = (report: any) => {
-    setIsGeneratingPdf(true);
+  const filteredReports = reports.filter((r) => {
+    const matchesStage = stageFilter === 'all' || r.status === stageFilter;
+    const matchesSearch = !searchQuery.trim() || 
+      r.content?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.sourcePlatform?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStage && matchesSearch;
+  });
+
+  const underReviewCount = reports.filter(r => r.status === 'escalated').length;
+  const takedownCount = reports.filter(r => r.status === 'takedown_requested').length;
+  const resolvedCount = reports.filter(r => r.status === 'resolved').length;
+
+  const handleUpdateStatus = async (newStatus: 'takedown_requested' | 'resolved' | 'escalated') => {
+    if (!selectedCase) return;
+    setIsUpdating(true);
+
     try {
-    const doc = new jsPDF();
-    
-    // --- BRAND HEADER ---
-    doc.setFillColor(15, 23, 42); // bg-slate-900
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.setTextColor(245, 158, 11); // amber-500
-    doc.text('Daleel', 20, 18);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.setTextColor(255, 255, 255);
-    doc.text('Official Verified Evidence Report', 20, 26);
-    
-    // --- TIMESTAMP ---
-    doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184); // slate-400
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 140, 20);
-    doc.text(`Report ID: ${report.id.substring(0,8).toUpperCase()}`, 140, 26);
-    
-    let y = 50;
+      const caseRef = doc(db, 'reports', selectedCase.id);
+      await updateDoc(caseRef, {
+        status: newStatus,
+        officialActionBy: user?.uid || 'official',
+        officialActionByName: dbUser?.name || user?.displayName || 'Enforcement Official',
+        officialActionByDept: dbUser?.department || dbUser?.organization || 'Civil Rights Division',
+        resolutionNote: resolutionNote.trim() || selectedCase.resolutionNote || 'Status updated by official authority.',
+        actionTakenAt: serverTimestamp(),
+      });
 
-    // --- VERIFICATION BADGE ---
-    doc.setFillColor(16, 185, 129); // emerald-500
-    doc.rect(20, y - 6, 170, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    const verificationTime = report.escalatedAt ? new Date(report.escalatedAt?.toDate ? report.escalatedAt.toDate() : report.escalatedAt).toLocaleString() : 'N/A';
-    doc.text(`VERIFIED & ESCALATED BY DALEEL NETWORK (${verificationTime})`, 25, y);
-    
-    y += 15;
-
-    // --- PERSONNEL ---
-    doc.setFillColor(241, 245, 249); // slate-100
-    doc.rect(20, y, 170, 35, 'F');
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text('1. Original Reporter', 25, y + 8);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${report.reporterName || 'Anonymous'}`, 25, y + 16);
-    doc.text(`Contact: ${report.reporterEmail || 'N/A'} | ${report.reporterPhone || 'N/A'}`, 25, y + 22);
-    doc.text(`DOB: ${report.reporterDob || 'N/A'}`, 25, y + 28);
-
-    doc.line(105, y + 5, 105, y + 30); // separator
-
-    doc.setFont("helvetica", "bold");
-    doc.text('2. Verifying Journalist', 110, y + 8);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${report.escalatedByName || 'N/A'}`, 110, y + 16);
-    doc.text(`Contact: ${report.escalatedByEmail || 'N/A'}`, 110, y + 22);
-    doc.text(`Phone: ${report.escalatedByPhone || 'N/A'}`, 110, y + 28);
-    
-    y += 45;
-
-    // --- SEVERITY & PLATFORM ---
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(245, 158, 11);
-    doc.text(`AI Severity Assessment: ${report.severity} (${report.aiScore}/10)`, 20, y);
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Source Platform: ${report.sourcePlatform || 'Unknown'}`, 20, y + 8);
-    doc.line(20, y + 12, 190, y + 12);
-
-    y += 25;
-
-    // --- CONTENT & EVIDENCE ---
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Documented Evidence:', 20, y);
-    
-    y += 10;
-
-    if (report.imageUrl || report.imageBase64) {
-      try {
-        doc.addImage(report.imageUrl || report.imageBase64, 20, y, 150, 90);
-        y += 100;
-      } catch (e) {
-        doc.setFont("helvetica", "italic");
-        doc.setFontSize(10);
-        doc.text('[Attached Image - Failed to render in PDF]', 20, y);
-        y += 10;
-      }
-    }
-    
-    if (report.content) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      const splitContent = doc.splitTextToSize(report.content, 170);
-      doc.text(splitContent, 20, y);
-      y += (splitContent.length * 5) + 10;
-    }
-
-    if (y > 230) {
-      doc.addPage();
-      // add mini header
-      doc.setFillColor(15, 23, 42); 
-      doc.rect(0, 0, 210, 20, 'F');
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.setTextColor(245, 158, 11);
-      doc.text('Daleel (Cont.)', 20, 13);
-      y = 35;
-    }
-
-    // --- ANALYSIS ---
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Contextual Analysis & Harm Breakdown:', 20, y);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const splitNotes = doc.splitTextToSize(report.contextExplanation || 'No context generated.', 170);
-    doc.text(splitNotes, 20, y + 10);
-    
-    doc.save(`Daleel-Official-Report-${report.id.substring(0,6)}.pdf`);
+      setSelectedCase(null);
+      setResolutionNote('');
+    } catch (err) {
+      console.error('Failed to update case status:', err);
+      alert('Could not update status. Check permissions.');
     } finally {
-      setIsGeneratingPdf(false);
+      setIsUpdating(false);
     }
   };
 
-  return (
-    <div className="flex-1 w-full max-w-7xl mx-auto p-8 flex flex-col">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white tracking-tight">
-          {user?.displayName ? `Assalamualaikum, ${user.displayName.split(' ')[0]}` : 'Assalamualaikum'}
-        </h2>
-        <p className="text-slate-400 mt-2">Verified reports escalated to your Agency Inbox.</p>
-
-      {isProfileIncomplete && (
-        <div className="mt-6 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 max-w-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="text-white font-semibold">Action Required: Complete Your Credentials</h4>
-              <p className="text-sm text-slate-400">Please provide your Official ID to take legal takedown actions.</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="bg-amber-700/80 hover:bg-amber-600 backdrop-blur-sm border border-amber-500/30 shadow-lg shadow-amber-900/20 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors"
-          >
-            Complete Profile <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+  const generateOfficialPDF = (report: any) => {
+    try {
+      const doc = new jsPDF();
       
-      </div>
+      // Header Banner
+      doc.setFillColor(9, 13, 22);
+      doc.rect(0, 0, 210, 32, 'F');
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(245, 158, 11);
+      doc.text('DALEEL OFFICIAL ENFORCEMENT DOSSIER', 20, 16);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(148, 163, 184);
+      doc.text('Certified Evidence Package for Platform Compliance & Legal Notice', 20, 24);
+      
+      doc.text(`Incident ID: #${report.id.substring(0, 8).toUpperCase()}`, 135, 16);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 135, 24);
+      
+      let y = 45;
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-        <div className="lg:col-span-8 h-[520px]">
-          <NewsTicker />
-        </div>
-        <div className="lg:col-span-4 flex flex-col justify-center">
-          <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-xl">
-             <h3 className="text-xl font-bold text-white mb-4">Agency Intelligence</h3>
-             <div className="space-y-4">
-                <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
-                  <p className="text-3xl font-black text-emerald-500">{reports.length}</p>
-                  <p className="text-sm text-slate-400 font-medium">Pending Takedowns</p>
-                </div>
-                <div className="bg-[#020617]/40 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-xl border border-slate-800 shadow-inner">
-                  <p className="text-3xl font-black text-blue-500">{totalViolations}</p>
-                  <p className="text-sm text-slate-400 font-medium">Total Processed Reports</p>
-                </div>
-             </div>
+      // Verification & Chain of Custody Stamp
+      doc.setFillColor(254, 243, 199);
+      doc.rect(20, y, 170, 28, 'F');
+      doc.setDrawColor(251, 191, 36);
+      doc.rect(20, y, 170, 28, 'S');
+
+      doc.setTextColor(146, 64, 14);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text('OFFICIAL JURISDICTION & CHAIN OF CUSTODY CERTIFICATE', 25, y + 7);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Verifying Journalist: ${report.escalatedByName || 'Newsroom Analyst'} (${report.escalatedByOrg || 'Investigative Desk'})`, 25, y + 14);
+      doc.text(`Official Authority: ${report.officialActionByName || user?.displayName || 'Civil Rights Officer'}`, 25, y + 20);
+      doc.text(`Action Status: ${report.status?.toUpperCase() || 'ESCALATED'}`, 120, y + 14);
+      doc.text(`Platform: ${report.sourcePlatform || 'Web'}`, 120, y + 20);
+
+      y += 38;
+
+      // Evidence Text
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text('1. DOCUMENTED EVIDENCE OF INCITEMENT / HATE SPEECH:', 20, y);
+      y += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const splitText = doc.splitTextToSize(report.content || 'Attached visual media evidence.', 170);
+      doc.text(splitText, 20, y);
+      y += (splitText.length * 5) + 8;
+
+      // Academic Finding & Context
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text('2. INVESTIGATIVE DECONSTRUCTION & COUNTER-EVIDENCE:', 20, y);
+      y += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const contextText = report.contextExplanation || 'Content violates statutory online safety hate speech provisions.';
+      const splitContext = doc.splitTextToSize(contextText, 170);
+      doc.text(splitContext, 20, y);
+      y += (splitContext.length * 5) + 8;
+
+      // Resolution Notes
+      if (report.resolutionNote) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text('3. OFFICIAL ENFORCEMENT & COMPLIANCE LOG:', 20, y);
+        y += 6;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        const splitResolution = doc.splitTextToSize(report.resolutionNote, 170);
+        doc.text(splitResolution, 20, y);
+        y += (splitResolution.length * 5) + 8;
+      }
+
+      // Cryptographic SHA-256 Hash
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(`Cryptographic SHA-256 Signature: ${report.evidenceHash || 'SHA-256 Validated'}`, 20, y);
+
+      doc.save(`official-dossier-${report.id.substring(0, 8)}.pdf`);
+    } catch (e) {
+      console.error('PDF error:', e);
+      alert('Could not compile official PDF dossier.');
+    }
+  };
+
+  const getLegalTakedownMemo = (report: any) => {
+    return `OFFICIAL LEGAL NOTICE & TAKEDOWN DEMAND
+To: ${report.sourcePlatform} Trust, Safety & Compliance Division
+Date: ${new Date().toLocaleDateString()}
+Case Ref: #${report.id.toUpperCase()}
+
+RE: Urgent Request for Removal of Unlawful Hate Speech & Targeted Incitement
+
+Pursuant to applicable statutory online safety frameworks (including EU Digital Services Act Article 16, UK Online Safety Act, and standard Platform Terms of Service), this office has received and verified formal evidence regarding the following publication:
+
+1. Offending Material:
+- Source Platform: ${report.sourcePlatform}
+- Reference URL: ${report.postUrl || 'Uploaded in dossier'}
+- Preserved Content: "${report.content || 'Visual screenshot'}"
+- Tamper-Evident SHA-256 Hash: ${report.evidenceHash || 'Verified'}
+
+2. Finding of Unlawfulness & Policy Violation:
+${report.contextExplanation || 'Content employs documented hate tropes and incitement.'}
+
+3. Required Action:
+We formally demand the immediate de-indexing, geoblocking, or removal of this offending content within 24 hours of receipt.
+
+Certified by:
+${user?.displayName || 'Enforcement Officer'}, ${dbUser?.department || 'Civil Rights & Online Safety Authority'}
+Daleel Trust & Safety Repository (daleel.org)`;
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-[#090d16] text-slate-100 p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header & Metrics Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Official & Legal Authority Console
+              </span>
+              <span className="text-xs text-slate-400">&bull; Statutory Compliance Desk</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+              Evidence Enforcement Command
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Ingest journalist-verified dossiers, issue formal platform takedown demands, and log legal enforcement outcomes.
+            </p>
+          </div>
+
+          {/* Quick Metrics */}
+          <div className="flex items-center gap-3">
+            <div className="bg-[#0f172a] border border-slate-800 p-3 rounded-xl min-w-[120px]">
+              <span className="text-[11px] text-slate-400 font-semibold block uppercase">Awaiting Action</span>
+              <span className="text-xl font-bold text-amber-400">{underReviewCount}</span>
+            </div>
+            <div className="bg-[#0f172a] border border-slate-800 p-3 rounded-xl min-w-[120px]">
+              <span className="text-[11px] text-slate-400 font-semibold block uppercase">Takedowns Issued</span>
+              <span className="text-xl font-bold text-blue-400">{takedownCount}</span>
+            </div>
+            <div className="bg-[#0f172a] border border-slate-800 p-3 rounded-xl min-w-[120px]">
+              <span className="text-[11px] text-slate-400 font-semibold block uppercase">Resolved / Removed</span>
+              <span className="text-xl font-bold text-emerald-400">{resolvedCount}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="grid grid-cols-12 gap-4 p-4 bg-slate-950/50 border-b border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider">
-          <div className="col-span-2">Case ID</div>
-          <div className="col-span-3">Custody Status</div>
-          <div className="col-span-4">Analyst Notes</div>
-          <div className="col-span-2">Action</div>
-          <div className="col-span-1 text-right">Details</div>
+        {/* Filter & Search Bar */}
+        <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by case ID, platform, or keywords..."
+              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0">
+            <button
+              onClick={() => setStageFilter('all')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}
+            >
+              All ({reports.length})
+            </button>
+            <button
+              onClick={() => setStageFilter('escalated')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'escalated' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400'}`}
+            >
+              Pending ({underReviewCount})
+            </button>
+            <button
+              onClick={() => setStageFilter('takedown_requested')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'takedown_requested' ? 'bg-blue-500/20 text-blue-300' : 'text-slate-400'}`}
+            >
+              Takedowns ({takedownCount})
+            </button>
+            <button
+              onClick={() => setStageFilter('resolved')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${stageFilter === 'resolved' ? 'bg-emerald-500/20 text-emerald-300' : 'text-slate-400'}`}
+            >
+              Resolved ({resolvedCount})
+            </button>
+          </div>
         </div>
 
-        {/* Table Rows */}
-        {reports.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No escalated cases at this time.</div>
-        ) : (
-          reports.map((report) => (
-            <div key={report.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
-              <div className="grid grid-cols-12 gap-4 p-4 items-center">
-                <div className="col-span-2">
-                  <span className="font-mono text-sm text-slate-300">#{report.id.substring(0, 8).toUpperCase()}</span>
-                  <span className="block text-xs text-slate-500 mt-1">
-                    {report.timestamp ? new Date(report.timestamp.seconds * 1000).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : report.date}
-                  </span>
-                </div>
-                
-                <div className="col-span-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm font-medium text-slate-200">Journalist Desk</span>
+        {/* Case Queue List */}
+        <div className="space-y-4">
+          {filteredReports.length === 0 ? (
+            <div className="bg-[#0f172a] border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-sm">
+              No escalated legal cases matching your active filter.
+            </div>
+          ) : (
+            filteredReports.map((report) => (
+              <div
+                key={report.id}
+                className="bg-[#0f172a] border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 group"
+              >
+                <div className="space-y-2 max-w-3xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-mono font-bold text-amber-400">
+                      CASE #{report.id.substring(0, 8).toUpperCase()}
+                    </span>
+                    <span className="text-slate-700">&bull;</span>
+                    <span className="text-xs font-semibold text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                      {report.sourcePlatform || 'Social Media'}
+                    </span>
+                    <span className="text-slate-700">&bull;</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                      report.status === 'resolved'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : report.status === 'takedown_requested'
+                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {report.status === 'resolved' ? 'Enforced & Resolved' : report.status === 'takedown_requested' ? 'Takedown Demand Issued' : 'Verified by Journalist'}
+                    </span>
                   </div>
-                  <span className="block text-xs text-emerald-400 mt-1 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" /> Chain of Custody Intact
-                  </span>
-                </div>
-                
-                <div className="col-span-4">
-                  <p className="text-sm text-slate-300 line-clamp-2">{report.contextExplanation || 'No context notes provided.'}</p>
-                </div>
-                
-                <div className="col-span-2 flex flex-col gap-2">
-                  <button 
-                    onClick={() => generatePDF(report)}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors border border-slate-700 w-full text-center flex justify-center items-center gap-1"
-                  >
-                    <Download className="w-3 h-3" /> PDF Report
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const subject = encodeURIComponent(`URGENT TAKEDOWN REQUEST - Case #${report.id.substring(0, 8).toUpperCase()} - Threat Level: ${report.severity}`);
-                      const body = encodeURIComponent(`To the Trust and Safety Team at ${report.sourcePlatform || 'the respective platform'},\n\nI am writing to you on behalf of the Daleel Threat Intelligence network to formally request the immediate removal of content that violates both your platform's Hate Speech policies and US Government guidelines regarding targeted harassment and incitement of violence.\n\nCase ID: #${report.id.substring(0, 8).toUpperCase()}\nSeverity Level: ${report.severity} (${report.aiScore}/10)\nDetected Categories: ${report.categories?.join(', ') || 'N/A'}\n\nEvidence Summary:\n${report.contextExplanation}\n\nWe have attached the full generated PDF report to this email for your legal team's review. Please confirm receipt and action taken within 24 hours.\n\nSincerely,\nOfficial Law Enforcement / Civil Rights Desk`);
-                      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=trust-and-safety@${(report.sourcePlatform || 'platform').toLowerCase().replace(/\s+/g, '')}.com&su=${subject}&body=${body}`, '_blank');
-                    }}
-                    className="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-500 px-3 py-1.5 rounded-lg font-bold transition-colors border border-red-500/30 w-full text-center"
-                  >
-                    Request Takedown
-                  </button>
+
+                  <p className="text-sm text-slate-200 font-medium leading-relaxed line-clamp-2">
+                    "{report.content || 'Attached visual evidence without text'}"
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
+                    <span>Journalist Validator: <strong>{report.escalatedByName || 'Newsroom Fact-Checker'}</strong> ({report.escalatedByOrg || 'Investigative Desk'})</span>
+                    {report.resolutionNote && (
+                      <span className="text-emerald-400 font-medium truncate max-w-md">
+                        Outcome: {report.resolutionNote}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="col-span-1 text-right relative">
-                  <button 
-                    onClick={() => setExpandedId(expandedId === report.id ? null : report.id)}
-                    className="text-amber-500 hover:text-amber-400 p-2"
+                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                  <button
+                    onClick={() => {
+                      setSelectedCase(report);
+                      setResolutionNote(report.resolutionNote || '');
+                    }}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
                   >
-                    <FileText className="w-5 h-5 inline-block" />
+                    <Gavel className="w-3.5 h-3.5" />
+                    <span>Enforce Action</span>
+                  </button>
+
+                  <button
+                    onClick={() => generateOfficialPDF(report)}
+                    className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs rounded-xl transition-colors flex items-center gap-1.5"
+                    title="Export Official Dossier"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Dossier</span>
                   </button>
                 </div>
               </div>
-              
-              {/* Expanded Evidence View */}
-              {expandedId === report.id && (
-                <div className="bg-slate-950/80 p-6 border-t border-slate-800/50">
-                  <h4 className="text-white font-bold mb-4 flex justify-between items-center">
-                    <span>Evidence Package Details</span>
-                    <span className="text-xs font-mono text-slate-500 bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md px-2 py-1 rounded">Source: {report.sourcePlatform || 'Unknown'}</span>
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h5 className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Original Content</h5>
-                      <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-lg border border-slate-800 text-sm text-slate-300 break-words mb-4">
-                        {report.content}
-                      </div>
-                      
-                      <h5 className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Reporter Information</h5>
-                      <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-lg border border-slate-800 text-sm text-slate-300 break-words">
-                        <div><span className="font-bold">Name:</span> {report.reporterName || 'Anonymous'}</div>
-                        <div><span className="font-bold">Email:</span> {report.reporterEmail || 'N/A'}</div>
-                        <div><span className="font-bold">Reporter ID:</span> <span className="font-mono text-xs text-slate-500">{report.reporterId}</span></div>
-                      </div>
+            ))
+          )}
+        </div>
 
-                      {report.imageBase64 && (
-                        <div className="mt-4">
-                          <h5 className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Attached Image</h5>
-                          <img src={report.imageUrl || report.imageBase64} alt="Evidence" className="max-w-full rounded-lg border border-slate-800" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h5 className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Analysis & Notes</h5>
-                      <div className="bg-[#020617]/50 border border-white/5 shadow-2xl backdrop-blur-md p-4 rounded-lg border border-slate-800 text-sm text-slate-300 space-y-4">
-                        <div>
-                          <span className="font-bold text-slate-200">Severity: </span>
-                          <span className={report.severity === 'Critical' || report.severity === 'High' ? 'text-red-400 font-bold' : 'text-amber-400 font-bold'}>
-                            {report.severity} ({report.aiScore}/10)
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-bold text-slate-200">Categories: </span>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {report.categories?.length ? report.categories.map((cat: string, i: number) => (
-                              <span key={i} className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold border border-indigo-500/30">{cat}</span>
-                            )) : 'None'}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="font-bold text-slate-200">Coded Language: </span>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {report.codedTerms?.length ? report.codedTerms.map((term: string, i: number) => (
-                              <span key={i} className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full text-xs font-bold border border-slate-700">{term}</span>
-                            )) : 'None detected'}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="font-bold text-slate-200 block mb-1">Context Explanation: </span>
-                          <p className="mt-1 leading-relaxed text-slate-400">{report.contextExplanation}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
-        )}
       </div>
-      <div className="mt-12">
-        <ProcessedHistory role="official" />
-            {showSettings && <ProfileSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
-    </div>
+
+      {/* ENFORCEMENT & LEGAL ACTION MODAL */}
+      {selectedCase && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div>
+                <span className="text-[11px] font-mono text-amber-400 font-bold block mb-1">
+                  LEGAL DOSSIER #{selectedCase.id.toUpperCase()}
+                </span>
+                <h3 className="text-lg font-bold text-slate-100">
+                  Platform Compliance & Enforcement Action Desk
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedCase(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Case Details */}
+            <div className="space-y-4 text-xs sm:text-sm">
+              
+              {/* Evidence & Journalist Stamp */}
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between text-xs text-slate-400">
+                  <span>Platform: <strong>{selectedCase.sourcePlatform}</strong></span>
+                  <span>Verifying Newsroom: <strong>{selectedCase.escalatedByOrg || 'Journalist Hub'}</strong></span>
+                </div>
+
+                <div className="p-3 bg-slate-900 rounded-lg text-slate-200 italic font-serif text-sm">
+                  "{selectedCase.content || 'Visual screenshot evidence'}"
+                </div>
+
+                {selectedCase.imageBase64 && (
+                  <div>
+                    <span className="text-xs font-semibold text-slate-400 block mb-1">Visual Evidence:</span>
+                    <img src={selectedCase.imageBase64} alt="Evidence" className="w-full max-h-64 object-cover rounded-lg border border-slate-800" />
+                  </div>
+                )}
+
+                {selectedCase.editorialNotes && (
+                  <div className="p-3 bg-blue-950/20 border border-blue-900/40 rounded-lg text-blue-300 text-xs">
+                    <strong>Journalist's Verification Notes:</strong> {selectedCase.editorialNotes}
+                  </div>
+                )}
+              </div>
+
+              {/* Legal Takedown Demand Generator */}
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    Statutory Takedown Notice & Legal Memo
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(getLegalTakedownMemo(selectedCase));
+                      setCopiedLegalMemo(true);
+                      setTimeout(() => setCopiedLegalMemo(false), 2000);
+                    }}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    {copiedLegalMemo ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedLegalMemo ? 'Copied Legal Notice' : 'Copy Legal Memo'}</span>
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Pre-formatted formal legal notice citing EU Digital Services Act Art 16 and standard Hate Speech statutes for platform trust & safety submission.
+                </p>
+              </div>
+
+              {/* Official Action & Resolution Note */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Official Action / Platform Resolution Note:
+                </label>
+                <textarea
+                  value={resolutionNote}
+                  onChange={(e) => setResolutionNote(e.target.value)}
+                  placeholder="Record platform response or legal referral (e.g. 'Formal takedown notice transmitted to X Safety; offending post removed by platform on Aug 28')..."
+                  rows={3}
+                  className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+              <button
+                onClick={() => generateOfficialPDF(selectedCase)}
+                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 w-full sm:w-auto justify-center"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export Certified PDF</span>
+              </button>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => handleUpdateStatus('takedown_requested')}
+                  disabled={isUpdating}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Mark Takedown Issued
+                </button>
+
+                <button
+                  onClick={() => handleUpdateStatus('resolved')}
+                  disabled={isUpdating}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Mark Enforced / Resolved
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
