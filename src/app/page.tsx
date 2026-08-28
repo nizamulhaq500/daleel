@@ -100,7 +100,7 @@ export default function LandingPage() {
               <span className="text-emerald-400 desert-brand-arabic text-sm font-arabic font-bold">دليل</span>
             </div>
             <p className="text-[10px] text-slate-400 desert-sub-text font-semibold tracking-wide uppercase hidden sm:block">
-              Public Interest Trust & Verification Pipeline
+              Forensic Evidence & Anti-Hate Intelligence Network
             </p>
           </div>
         </div>

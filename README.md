@@ -1,73 +1,46 @@
-# Daleel (دليل) — AI-Powered Anti-Muslim Hate Speech Detection & Evidence Pipeline
+# Daleel (دليل) — Forensic Evidence & Anti-Hate Intelligence Network
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.3-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-orange?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
-[![Google Gemini AI](https://img.shields.io/badge/Gemini%20AI-1.5%20%2F%202.0%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Google Gemini AI](https://img.shields.io/badge/Gemini%20AI-2.0%20%2F%201.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Deployed on Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-> **Daleel (دليل)** — Arabic for *Evidence*, *Guide*, or *Proof* — is an end-to-end Trust & Safety intelligence platform built to detect coded anti-Muslim hate speech, preserve forensically sound digital evidence with chain of custody, and power a 3-tier escalation workflow from grassroots community members to journalists and law enforcement officials.
+> **Daleel (دليل)** — Arabic for *Evidence*, *Proof*, or *Guide* — is an open-access digital forensics and counter-disinformation intelligence platform. It is engineered to detect coded anti-Muslim hate speech, preserve tamper-evident digital evidence with SHA-256 cryptographic chain of custody, and power an end-to-end triaged escalation pipeline connecting grassroots community witnesses, investigative journalists, and legal enforcement authorities.
 
 ---
 
-## 📌 Problem Statement
+## 📌 Executive Summary & Problem Context
 
-Anti-Muslim hate speech and Islamophobic violence have reached unprecedented global heights, yet traditional content moderation systems systematically fail to detect modern bigotry:
+Online Islamophobia and anti-Muslim disinformation campaigns have reached unprecedented global levels. However, conventional platform content moderation algorithms consistently fail to protect targeted communities:
 
-1. **Unprecedented Surge in Hate**: According to the Council on American-Islamic Relations (**CAIR 2024 Report**), civil rights complaints surged by **56% in 2023–2024**, documenting **8,061 verified incidents**—the highest level recorded in CAIR's 30-year history.
-2. **Global Under-Reporting & Coded Harassment**: The UK monitoring group **Tell MAMA** recorded **4,971 anti-Muslim hate incidents** following October 2023, with over 65% occurring online. Perpetrators actively bypass keyword filters by deploying linguistic dog whistles, historical slurs, and emoji substitutions (e.g., `🥓`, `🐷`, `"remove kebab"`, `"love jihad"`, `"jizya conspiracies"`).
-3. **Evidentiary Black Hole**: Grassroots victims and community monitors lack the technical tools to capture forensically verifiable chain-of-custody evidence before content is deleted or accounts are suspended, leaving journalists and law enforcement unable to act on dangerous escalation patterns.
+1. **Surge in Anti-Muslim Hostility**: Civil rights organizations have documented historic increases in anti-Muslim hate crimes and harassment, with civil rights complaints rising over **56% year-over-year** (CAIR 2024 Report, recording 8,061 verified incidents).
+2. **Coded Dog-Whistles & Filter Bypass Tactics**: Perpetrators systematically evade automated blocklists and keyword filters by utilizing subtle linguistic tropes, historical revisionism, emoji substitutions (e.g., `🥓`, `🐷`), and coded economic conspiracies (`"halal tax"`, `"creeping sharia"`, `"remove kebab"`, `"stealth jihad"`).
+3. **The Evidentiary Gap**: Bad actors frequently delete viral incitement or coordinated harassment posts once offline violence is sparked. Without immutable cryptographic evidence lockers, civil rights litigators, fact-checkers, and law enforcement agencies lack verifiable proof to take legal or platform-level enforcement action.
 
 ---
 
-## 💡 Solution Overview: 3-Tier Verification Pipeline
+## 💡 The 3-Tier Human-in-the-Loop Pipeline
 
-Daleel establishes a verifiable, human-in-the-loop Trust & Safety pipeline that connects three critical stakeholder groups:
+Daleel bridges the gap between public witnesses and institutional action through a structured, multi-tier chain-of-custody workflow:
 
 ```
-┌─────────────────────────┐       ┌───────────────────────────┐       ┌───────────────────────────┐
-│   Community Reporter    │  ───► │    Journalist Validator   │  ───► │  Official / Enforcement  │
-│                         │       │                           │       │                           │
-│ • Submits text/URLs/img │       │ • Triages incoming stream │       │ • Reviews verified dossier│
-│ • Hybrid AI scan        │       │ • Academic debunk checks  │       │ • Chain of custody audit  │
-│ • Instant initial score │       │ • Validates threat level  │       │ • Legal/Takedown exports  │
-└─────────────────────────┘       └───────────────────────────┘       └───────────────────────────┘
+┌────────────────────────────────┐       ┌────────────────────────────────┐       ┌────────────────────────────────┐
+│   Tier 1: Community Reporter   │  ───► │ Tier 2: Journalist Fact-Check  │  ───► │  Tier 3: Official Enforcement  │
+│                                │       │                                │       │                                │
+│ • Screenshot / URL Ingestion   │       │ • Multi-Incident Newsroom Desk │       │ • Immutable Audit Logs Review  │
+│ • Local SHA-256 Fingerprinting │       │ • Academic Lexicon Matching    │       │ • Statutory Notice Generation  │
+│ • Hybrid Regex + Gemini Scan   │       │ • Editorial Verification Stamp │       │ • Formal Takedown & Subpoena   │
+│ • Instant Community Certificate│       │ • Multi-Platform Syndication   │       │ • Cryptographic PDF Dossiers   │
+└────────────────────────────────┘       └────────────────────────────────┘       └────────────────────────────────┘
 ```
 
-1. **Community Reporters**: Affected individuals or community allies submit suspicious posts, screenshots, or URLs. Daleel executes an instant local regex + dictionary scan across 35+ researched coded terms, augmented by **Google Gemini AI** and **Perspective API** toxicity evaluation.
-2. **Journalist Validators**: Accredited media analysts, fact-checkers, and civil rights monitors review incoming incident queues, cross-reference historical counter-narrative databases, annotate evidentiary metadata, and approve or reject submissions.
-3. **Officials & Law Enforcement**: Legal advocates, platform Trust & Safety officers, and law enforcement personnel receive forensically packaged evidence dossiers with immutable audit trails for platform takedowns or legal prosecution.
-
----
-
-## ✨ Key Features
-
-- 🧠 **Hybrid Coded Language Detection**: Researched dictionary containing 35+ anti-Muslim dog whistles, slurs, and geopolitical dog whistles across English, Hindi/Urdu, French, and emoji substitutions (`kebab`, `katwa`, `eurabia`, `stealth jihad`, `islamogauchisme`, `🥓`, `💣`).
-- ⚡ **Google Gemini AI Deep Context Analysis**: Semantic analysis that analyzes subtle contextual subtext, historical tropes, and genocidal innuendos that evade keyword blocklists.
-- 📊 **Perspective API Multi-Attribute Toxicity Scoring**: Granular quantification of severe toxicity, identity attack, insult, and threat vectors.
-- 🔐 **Multi-Role Authentication & Security**: Firebase Auth supporting Google OAuth and Email/Password with role-based access control (`reporter`, `journalist`, `official`).
-- 🔄 **Real-Time Chain-of-Custody Tracking**: Cloud Firestore event-sourced state tracking documenting timestamped validations, status changes, reviewer signatures, and audit logs.
-- 📄 **Client-Side PDF Evidence Dossier Generation**: High-resolution, multi-page forensic reports generated via `jsPDF` and `html2canvas`, complete with QR codes, cryptographic timestamps, and violation citations.
-- 🤖 **Interactive FactCheck AI Chatbot**: Real-time Gemini-powered assistant capable of debunking viral Islamophobic myths, analyzing text/images, and generating shareable social counter-messaging.
-- 📚 **Curated Counter-Narrative Archive (50+ Entries)**: Categorized database of academic refutations, theological contexts, and demographic facts citing ISPU, Bridge Initiative, and Pew Research.
-- ⏳ **Hate Crime & Policy Timeline**: Chronological historical tracking of 10 major real-world anti-Muslim violence milestones and policy changes to contextualize modern threat escalations.
-- 🌐 **Platform-Specific Escalation Guides (8 Platforms)**: Step-by-step reporting protocols tailored for Meta (Facebook/Instagram), YouTube, X (Twitter), TikTok, Reddit, Discord, Telegram, and LinkedIn.
-- 🎨 **Glassmorphic Interactive UI**: Dynamic cursor-following flashlight canvas background with seamless toggle between **Greenish Night (Dark)** and **Desert (Light)** themes.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 15 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) |
-| **Language** | [TypeScript 5.7](https://www.typescriptlang.org/) |
-| **Styling & Design** | [Tailwind CSS v4.0](https://tailwindcss.com/) + Glassmorphism + [Lucide React](https://lucide.dev/) / [React Icons](https://react-icons.github.io/react-icons/) |
-| **Artificial Intelligence** | [Google Gemini 1.5 / 2.0 Flash](https://ai.google.dev/) (`@google/generative-ai`) |
-| **Toxicity Engine** | [Google Perspective API](https://perspectiveapi.com/) |
-| **Authentication & DB** | [Firebase Auth](https://firebase.google.com/products/auth) + [Cloud Firestore](https://firebase.google.com/products/firestore) |
-| **Evidence Generation** | [jsPDF](https://github.com/parallax/jsPDF) + [html2canvas](https://html2canvas.hertzen.com/) |
+* **Community Reporters**: Upload digital evidence, generate tamper-proof SHA-256 checksums before content can be deleted, and receive real-time forensic threat classifications.
+* **Investigative Journalists**: Triage incoming incident streams, match claims against peer-reviewed academic datasets (The Bridge Initiative @ Georgetown, Tell MAMA, ISPU), attach editorial verifications, and syndicate debunks across Substack, Twitter/X, and news feeds.
+* **Statutory Officials & Legal Monitors**: Access timestamped incident dossiers with full chain-of-custody audit logs, issue certified compliance warnings, and export tamper-evident forensic PDF certificates with verifiable QR codes.
 
 ---
 
@@ -75,115 +48,186 @@ Daleel establishes a verifiable, human-in-the-loop Trust & Safety pipeline that 
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Layer (Next.js 15 + React 19)"]
-        UI[Glassmorphic UI / Dashboard]
-        FC[FactCheck AI Chatbot]
-        PDF[jsPDF Dossier Engine]
+    subgraph Client ["Client Layer (Next.js 15 App Router + React 19)"]
+        UI["Dual-Theme UI (Desert Sand / Greenish Night)"]
+        FCB["FactCheckBot Floating Terminal"]
+        FCS["FactCheckStudio In-Page Engine"]
+        Locker["SHA-256 Client-Side Evidence Vault"]
+        PDF["jsPDF Forensic Certificate Generator"]
+        CmdK["Global Command Palette (Cmd+K)"]
     end
 
-    subgraph API ["Next.js Serverless API Routes"]
-        A_Analyze["/api/analyze (Hybrid Triage)"]
-        A_Tox["/api/toxicity (Perspective API)"]
-        A_Fact["/api/factcheck (Gemini Flash)"]
+    subgraph Serverless ["Next.js Serverless Edge & Node API Routes"]
+        API_Analyze["/api/analyze (Hybrid Lexicon + Gemini NLP)"]
+        API_FactCheck["/api/factcheck (Gemini 2.0 Academic Fact-Checker)"]
+        API_Tox["/api/toxicity (Google Perspective Multi-Vector Score)"]
     end
 
-    subgraph Services ["External Services & Data"]
-        Gemini["Google Gemini 1.5 / 2.0 Flash"]
+    subgraph DataServices ["Cloud Infrastructure & Knowledge Bases"]
+        Gemini["Google Gemini AI (1.5 / 2.0 Flash)"]
         Perspective["Google Perspective API"]
-        Firestore["Cloud Firestore (Audit Logs & Dossiers)"]
-        FBAuth["Firebase Authentication"]
-        Dict["Coded Language Dictionary (35+ Terms)"]
+        Firestore["Cloud Firestore (Real-Time State & Incident DB)"]
+        FBAuth["Firebase Authentication (Role-Based RBAC)"]
+        Lexicon["Academic Slur & Coded Tropes Lexicon"]
+        Scorecards["Platform Policy & Enforcement Matrix"]
     end
 
-    UI -->|Incident Submission| A_Analyze
-    A_Analyze --> Dict
-    A_Analyze --> Gemini
-    A_Analyze --> A_Tox
-    A_Tox --> Perspective
-    A_Analyze -->|Persist Evidence| Firestore
-    UI -->|Role Auth| FBAuth
-    FC -->|Myth Debunking| A_Fact
-    A_Fact --> Gemini
-    Firestore -->|Status Stream| UI
-    UI -->|Export Evidence| PDF
+    UI -->|Incident Submission| API_Analyze
+    API_Analyze --> Lexicon
+    API_Analyze --> Gemini
+    API_Analyze --> API_Tox
+    API_Tox --> Perspective
+    API_Analyze -->|Store Evidence Record| Firestore
+    UI -->|Role-Based Access Control| FBAuth
+    FCB & FCS -->|Academic Debunking| API_FactCheck
+    API_FactCheck --> Gemini
+    Firestore -->|Live Incident Stream| UI
+    UI -->|Export Forensic Dossier| PDF
+    CmdK -->|Deep Search & Navigation| UI
 ```
 
 ---
 
-## 🚀 Getting Started & Local Setup
+## ✨ Core Modules & Platform Capabilities
+
+### 1. 🔍 Hybrid Coded Language & Disinformation Detection Engine
+* **Researched Dog-Whistle Lexicon**: Proprietary catalog of 40+ anti-Muslim slurs, historical revisionist tropes, and emoji substitutions across English, Hindi/Urdu, French, and German.
+* **Semantic Context Analysis via Google Gemini AI**: Evaluates nuanced sarcasm, dog-whistles, and dehumanizing metaphors that bypass conventional regex filters.
+* **Perspective API Multi-Vector Toxicity Scoring**: Quantifies severe toxicity, identity attacks, insults, profanity, and threat levels.
+
+### 2. ⚡ Real-Time Fact-Check Studio & Floating AI Bot
+* **Academic Citations**: Debunks claims in real-time by cross-referencing research from **The Bridge Initiative (Georgetown University)**, **ISPU**, **Tell MAMA UK**, and the **UN International Criminal Tribunal**.
+* **One-Click Counter-Narrative Sharing**: Instantly format factual rebuttals for X/Twitter, WhatsApp, LinkedIn, and Substack.
+* **Embeddable Fact-Check Widget**: Allows independent newsrooms, student newspapers, and blogs to embed Daleel's verified fact-checking terminal with a 2-line snippet.
+
+### 3. 📊 Threat Heatmap & Surge Velocity Tracking
+* Real-time monitoring of active disinformation clusters (e.g., *"Halal Tax Conspiracies"*, *"Demographic Replacement"*, *"Taqiyya Inversion"*).
+* 24-hour surge velocity percentages (`+68% spike`, `+42% surge`) and cross-platform spread breakdowns (X/Twitter, TikTok, Meta, Telegram, YouTube).
+
+### 4. ⚖️ Big Tech Platform Accountability Scorecard
+* Evaluates 8 major platforms (X/Twitter, Meta, TikTok, YouTube, Reddit, Discord, Telegram, LinkedIn) across 5 rigorous metrics:
+  * Coded Slur Enforcement
+  * Appeal Transparency
+  * Response Time to Incitement
+  * Independent Researcher Data Access
+  * State Media & Botnet Transparency
+
+### 5. 📜 SHA-256 Digital Fingerprint Evidence Locker & Forensic PDF Export
+* Generates browser-side SHA-256 cryptographic hashes for captured visual screenshots and text payloads.
+* Generates court-ready, multi-page forensic PDF dossiers via `jsPDF` with verification QR codes, incident timelines, and platform policy citations.
+
+### 6. 🎨 Dual-Theme Architecture (Desert Sand & Greenish Night)
+* **Desert Sand Mode (Warm Light)**: Creamy sand bisque (`#f7efe4`), warm white (`#fdfaf5`), and rich espresso text (`#1e140d`).
+* **Greenish Night Mode (Emerald Dark)**: Deep midnight slate (`#090d16`), emerald accents (`#10b981`), and high-contrast text (`#f8fafc`).
+* Custom Tailwind CSS v4 `@custom-variant dark (&:where(.dark, .dark *));` engine guaranteeing zero theme flash or OS-level overrides.
+
+### 7. 📱 Mobile-First Responsive Design
+* Native touch-optimized bottom sheets for the FactCheckBot on mobile screens.
+* Responsive card stacks, touch-friendly tab filters, and overflow-contained dialogs across small phones (360px–430px), tablets (768px), and desktops (1280px+).
+
+---
+
+## 🛠️ Technology Stack
+
+| Domain | Technology | Purpose |
+|---|---|---|
+| **Frontend Framework** | [Next.js 15 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) | Server Components, fast hydration, API endpoints |
+| **Language** | [TypeScript 5.7](https://www.typescriptlang.org/) | Full-stack type safety |
+| **Styling & Theming** | [Tailwind CSS v4.0](https://tailwindcss.com/) | Custom variants, responsive layouts, dual-theme styling |
+| **AI & NLP** | [Google Gemini 2.0 / 1.5 Flash](https://ai.google.dev/) (`@google/genai`) | Semantic claim debunking & coded slur extraction |
+| **Toxicity Analysis** | [Google Perspective API](https://perspectiveapi.com/) | Granular hate speech and identity attack quantification |
+| **Auth & Database** | [Firebase Auth](https://firebase.google.com/) + [Cloud Firestore](https://firebase.google.com/products/firestore) | Role-based authentication (RBAC) and immutable event storage |
+| **Forensic PDF Export** | [jsPDF](https://github.com/parallax/jsPDF) + [html2canvas](https://html2canvas.hertzen.com/) | Tamper-evident PDF certificate generation with QR stamps |
+| **Icons & Media** | [Lucide React](https://lucide.dev/) + [React Icons](https://react-icons.github.io/react-icons/) | Semantic iconography |
+| **Production Hosting** | [Vercel](https://vercel.com/) | Serverless functions, edge routing, Brotli/Gzip compression |
+
+---
+
+## 🚀 Getting Started & Local Development
 
 ### Prerequisites
-- Node.js `18.x` or `20.x`+
-- npm or yarn / pnpm
-- Google Gemini API Key
-- Firebase Project credentials
-- *(Optional)* Google Perspective API Key
+* **Node.js**: `v18.18+` or `v20.x`
+* **Package Manager**: `npm`, `pnpm`, or `yarn`
+* **Google Gemini API Key**: [Get an API Key](https://aistudio.google.com/)
+* **Firebase Project**: [Firebase Console](https://console.firebase.google.com/)
 
-### Installation
+### 1. Clone the Repository
+```bash
+git clone https://github.com/nizamulhaq500/daleel.git
+cd daleel/postbunk
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/daleel.git
-   cd daleel
-   ```
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+### 3. Configure Environment Variables
+Create a `.env.local` file in the root of the project:
+```env
+# Google Gemini API
+GEMINI_API_KEY=your_gemini_api_key_here
 
-3. **Configure Environment Variables**:
-   Create a `.env.local` file in the root directory:
-   ```env
-   # Google Gemini AI
-   GEMINI_API_KEY=your_gemini_api_key_here
+# Perspective API (Optional / Fallback)
+PERSPECTIVE_API_KEY=your_perspective_api_key_here
 
-   # Perspective API (Optional / Fallback)
-   PERSPECTIVE_API_KEY=your_perspective_api_key_here
+# Firebase Web Client Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-   # Firebase Client Config
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-   ```
+### 4. Run the Local Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-4. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
-
-5. **Open in browser**:
-   Navigate to [http://localhost:3000](http://localhost:3000) to access the Daleel platform.
-
----
-
-## 📸 Screenshots
-
-> Screenshots and UI walkthrough recordings can be found in `/docs/screenshots/`.
-> 
-> - `01_landing_hero.png` — Landing page with live news ticker and cursor light canvas.
-> - `02_reporter_view.png` — Incident ingestion with instant coded term flagging.
-> - `03_journalist_hub.png` — Multi-incident triage, verification queue, and counter-narrative matching.
-> - `04_official_dossier.png` — Official portal with chain of custody timeline and PDF export.
-> - `05_factcheck_bot.png` — Interactive FactCheck AI modal with social card generator.
+### 5. Build for Production
+```bash
+npm run build
+npm run start
+```
 
 ---
 
-## 👥 Team
+## 🔌 API Routes Reference
 
-- **Daleel Development & Research Team** — *Trust & Safety engineering, AI prompt design, and community research.*
+### `POST /api/analyze`
+Accepts text, image URL, and platform metadata. Runs dictionary scan, Google Gemini contextual review, and Perspective API toxicity check.
+```json
+{
+  "text": "Viral post content claiming halal certification funds militancy...",
+  "platform": "x",
+  "url": "https://x.com/example/status/123"
+}
+```
+
+### `POST /api/factcheck`
+Queries the Gemini 2.0 Flash engine with prompt engineering grounded in academic and historical datasets to generate factual refutations.
+```json
+{
+  "query": "Is halal certification an economic jihad tax?"
+}
+```
+
+### `POST /api/toxicity`
+Returns raw Perspective API attribute vectors: `TOXICITY`, `SEVERE_TOXICITY`, `IDENTITY_ATTACK`, `INSULT`, and `THREAT`.
 
 ---
 
-## 🏆 Hackathon Context
+## 🔒 Security & Privacy Policy
 
-Daleel was conceptualized, designed, and built for **The Harvest Anti-Muslim Hate Hackathon 2026** to pioneer automated, verifiable, and community-centered interventions against online Islamophobia.
+* **Immutable Chain of Custody**: Evidence records stored in Cloud Firestore utilize append-only event logging for all verification state transitions.
+* **Cryptographic Data Protection**: SHA-256 hashes are computed client-side before submission to prove zero post-capture modification.
+* **Privacy & Ethics Contact**: For privacy inquiries, research collaborations, or data deletion requests, email `daleeel.project@gmail.com`.
 
 ---
 
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+
